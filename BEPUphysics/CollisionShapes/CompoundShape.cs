@@ -162,23 +162,7 @@ namespace BEPUphysics.CollisionShapes
         /// <param name="center">Computed center of the compound shape, using the entry weights.</param>
         public CompoundShape(IList<CompoundShapeEntry> shapes, out Vector3 center)
         {
-            if (shapes.Count > 0)
-            {
-                float volume;
-                ComputeVolumeDistribution(shapes, out volume, out volumeDistribution, out center);
-                Volume = volume;
-
-                this.shapes = new RawList<CompoundShapeEntry>(shapes);
-                //Recenter the shapes.
-                for (int i = 0; i < this.shapes.Count; i++)
-                {
-                    this.shapes.Elements[i].LocalTransform.Position -= center;
-                }
-            }
-            else
-            {
-                throw new ArgumentException("Compound shape must have at least 1 subshape.");
-            }
+            BuildCompoundShape(shapes, out center);
         }
 
         ///<summary>
@@ -187,25 +171,10 @@ namespace BEPUphysics.CollisionShapes
         ///<param name="shapes">Shape entries used to create the compound.</param>
         public CompoundShape(IList<CompoundShapeEntry> shapes)
         {
-            if (shapes.Count > 0)
-            {
-                float volume;
-                Vector3 center;
-                ComputeVolumeDistribution(shapes, out volume, out volumeDistribution, out center);
-                Volume = volume;
-
-                this.shapes = new RawList<CompoundShapeEntry>(shapes);
-                //Recenter the shapes.
-                for (int i = 0; i < this.shapes.Count; i++)
-                {
-                    this.shapes.Elements[i].LocalTransform.Position -= center;
-                }
-            }
-            else
-            {
-                throw new ArgumentException("Compound shape must have at least 1 subshape.");
-            }
+            Vector3 center;
+            BuildCompoundShape(shapes, out center);
         }
+
         ///<summary>
         /// Constructs a new compound shape from cached data.
         ///</summary>
@@ -217,6 +186,33 @@ namespace BEPUphysics.CollisionShapes
             UpdateEntityShapeVolume(volumeDescription);
         }
         
+        ///<summary>
+        /// Rebuild compound shape from shape list.
+        ///</summary>
+        void BuildCompoundShape(IList<CompoundShapeEntry> shapes, out Vector3 center)
+        {
+            float volume;
+            ComputeVolumeDistribution(shapes, out volume, out volumeDistribution, out center);
+            Volume = volume;
+
+            this.shapes = new RawList<CompoundShapeEntry>(shapes);
+            //Recenter the shapes.
+            for (int i = 0; i < this.shapes.Count; i++)
+            {
+                this.shapes.Elements[i].LocalTransform.Position -= center;
+            }
+        }
+
+        ///<summary>
+        /// Update transformation for shape
+        ///</summary>
+        public void UpdateShapeLocalTransformation(int index, RigidTransform transf)
+        {
+            if (index < shapes.Count)
+                shapes.Elements[index].LocalTransform = transf;
+            else
+                System.Diagnostics.Debug.Assert(false, "Invalid index");
+        }
 
         /// <summary>
         /// Computes the volume distribution and center of the shape.
@@ -227,6 +223,7 @@ namespace BEPUphysics.CollisionShapes
         /// <param name="center">Center of the compound.</param>
         public static void ComputeVolumeDistribution(IList<CompoundShapeEntry> entries, out float volume, out Matrix3x3 volumeDistribution, out Vector3 center)
         {
+            float totalWeightInverse;
             center = new Vector3();
             float totalWeight = 0;
             volume = 0;
@@ -237,8 +234,9 @@ namespace BEPUphysics.CollisionShapes
                 totalWeight += entries[i].Weight;
             }
             if (totalWeight <= 0)
-                throw new NotFiniteNumberException("Cannot compute distribution; the total weight of a compound shape must be positive.");
-            float totalWeightInverse = 1 / totalWeight;
+                totalWeightInverse = 1000000;
+            else
+                totalWeightInverse = 1 / totalWeight;
             totalWeightInverse.Validate();
             center *= totalWeightInverse;
 
@@ -301,7 +299,33 @@ namespace BEPUphysics.CollisionShapes
         }
 
 
-     
+        /// <summary>
+        /// Get local bounding box
+        /// </summary>
+        /// <param name="transform">Transform to apply to the shape to compute the bounding box.</param>
+        /// <param name="boundingBox">Bounding box for the shape given the transform.</param>
+        public void GetLocalBoundingBox(out BoundingBox boundingBox)
+        {
+            if (shapes.Elements.Length == 0)
+                boundingBox = default(BoundingBox);
+            else
+            {
+                //TODO: optimize by have local bboxes in shapes (maybe compute once and keep in shape it self)
+                RigidTransform transform = RigidTransform.Identity;
+                //init bbox
+                boundingBox.Min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+                boundingBox.Max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+
+                //process rest of shapes
+                for (int i = 0; i < shapes.Count; i++)
+                {
+                    RigidTransform.Multiply(ref shapes.Elements[i].LocalTransform, ref transform, out transform);
+                    BoundingBox childBoundingBox;
+                    shapes.Elements[i].Shape.GetBoundingBox(ref transform, out childBoundingBox);
+                    BoundingBox.CreateMerged(ref boundingBox, ref childBoundingBox, out boundingBox);
+                }
+            }
+        }
 
         /// <summary>
         /// Computes a bounding box for the shape given the specified transform.
@@ -310,16 +334,21 @@ namespace BEPUphysics.CollisionShapes
         /// <param name="boundingBox">Bounding box for the shape given the transform.</param>
         public override void GetBoundingBox(ref RigidTransform transform, out BoundingBox boundingBox)
         {
-            RigidTransform combinedTransform;
-            RigidTransform.Multiply(ref shapes.Elements[0].LocalTransform, ref transform, out combinedTransform);
-            shapes.Elements[0].Shape.GetBoundingBox(ref combinedTransform, out boundingBox);
-
-            for (int i = 0; i < shapes.Count; i++)
+            if (shapes.Elements.Length == 0)
+                boundingBox = default(BoundingBox);
+            else
             {
-                RigidTransform.Multiply(ref shapes.Elements[i].LocalTransform, ref transform, out combinedTransform);
-                BoundingBox childBoundingBox;
-                shapes.Elements[i].Shape.GetBoundingBox(ref combinedTransform, out childBoundingBox);
-                BoundingBox.CreateMerged(ref boundingBox, ref childBoundingBox, out boundingBox);
+                RigidTransform combinedTransform;
+                RigidTransform.Multiply(ref shapes.Elements[0].LocalTransform, ref transform, out combinedTransform);
+                shapes.Elements[0].Shape.GetBoundingBox(ref combinedTransform, out boundingBox);
+
+                for (int i = 0; i < shapes.Count; i++)
+                {
+                    RigidTransform.Multiply(ref shapes.Elements[i].LocalTransform, ref transform, out combinedTransform);
+                    BoundingBox childBoundingBox;
+                    shapes.Elements[i].Shape.GetBoundingBox(ref combinedTransform, out childBoundingBox);
+                    BoundingBox.CreateMerged(ref boundingBox, ref childBoundingBox, out boundingBox);
+                }
             }
         }
     }
