@@ -9,6 +9,11 @@ namespace BEPUphysics.CollisionShapes
     ///</summary>
     public abstract class CollisionShape
     {
+        /// <summary>
+        /// Gets or sets the user data associated with this entry.
+        /// </summary>
+        public object Tag { get; set; }
+
         ///<summary>
         /// Fires when some of the local space information in the shape changes.
         ///</summary>
@@ -19,8 +24,5 @@ namespace BEPUphysics.CollisionShapes
             if (ShapeChanged != null)
                 ShapeChanged(this);
         }
-
-
-
     }
 }

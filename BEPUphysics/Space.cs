@@ -183,6 +183,10 @@ namespace BEPUphysics
         ///</summary>
         public EndOfFrameUpdateableManager EndOfFrameUpdateables { get; set; }
 
+        /// <summary>
+        /// Gets or sets the user data associated with this entry.
+        /// </summary>
+        public object Tag { get; set; }
 
         ///<summary>
         /// Gets the list of entities in the space.
