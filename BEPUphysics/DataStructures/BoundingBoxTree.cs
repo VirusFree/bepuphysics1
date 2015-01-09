@@ -220,6 +220,8 @@ namespace BEPUphysics.DataStructures
             where TElement : IBoundingBoxOwner
         {
             bool intersects;
+            if (root==null || tree.root == null)
+                return false;
             root.BoundingBox.Intersects(ref tree.root.BoundingBox, out intersects);
             if (intersects)
             {
