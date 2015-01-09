@@ -196,11 +196,6 @@ namespace BEPUphysics.CollisionShapes
             Volume = volume;
 
             this.shapes = new RawList<CompoundShapeEntry>(shapes);
-            //Recenter the shapes.
-            for (int i = 0; i < this.shapes.Count; i++)
-            {
-                this.shapes.Elements[i].LocalTransform.Position -= center;
-            }
         }
 
         ///<summary>
