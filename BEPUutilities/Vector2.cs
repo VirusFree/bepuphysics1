@@ -140,14 +140,14 @@ namespace BEPUutilities
         /// <summary>
         /// Gets the zero vector.
         /// </summary>
-        public static Vector2 Zero
-        {
-            get
-            {
-                return new Vector2();
-            }
-        }
+        public static Vector2 Zero = new Vector2();
 
+        /// <summary>
+        /// Gets the one vector.
+        /// </summary>
+        public static Vector2 One = new Vector2(1, 1);
+
+        
         /// <summary>
         /// Gets a vector pointing along the X axis.
         /// </summary>

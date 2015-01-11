@@ -340,7 +340,7 @@ namespace BEPUutilities
             return X.GetHashCode() + Y.GetHashCode() + Z.GetHashCode();
         }
 
-        
+
         /// <summary>
         /// Computes the squared distance between two vectors.
         /// </summary>
@@ -399,133 +399,57 @@ namespace BEPUutilities
         /// <summary>
         /// Gets the zero vector.
         /// </summary>
-        public static Vector3 Zero
-        {
-            get
-            {
-                return new Vector3();
-            }
-        }
+        public static Vector3 Zero = new Vector3();
+
+        /// <summary>
+        /// Gets the one vector.
+        /// </summary>
+        public static Vector3 One = new Vector3(1, 1, 1);
 
         /// <summary>
         /// Gets the up vector (0,1,0).
         /// </summary>
-        public static Vector3 Up
-        {
-            get
-            {
-                return new Vector3()
-                {
-                    X = 0,
-                    Y = 1,
-                    Z = 0
-                };
-            }
-        }
+        public static Vector3 Up = new Vector3(0, 1, 0);
 
         /// <summary>
         /// Gets the down vector (0,-1,0).
         /// </summary>
-        public static Vector3 Down
-        {
-            get
-            {
-                return new Vector3()
-                {
-                    X = 0,
-                    Y = -1,
-                    Z = 0
-                };
-            }
-        }
+        public static Vector3 Down = new Vector3(0, -1, 0);
 
         /// <summary>
         /// Gets the right vector (1,0,0).
         /// </summary>
-        public static Vector3 Right
-        {
-            get
-            {
-                return new Vector3()
-                {
-                    X = 1,
-                    Y = 0,
-                    Z = 0
-                };
-            }
-        }
+        public static Vector3 Right = new Vector3(1, 0, 0);
 
         /// <summary>
         /// Gets the left vector (-1,0,0).
         /// </summary>
-        public static Vector3 Left
-        {
-            get
-            {
-                return new Vector3()
-                {
-                    X = -1,
-                    Y = 0,
-                    Z = 0
-                };
-            }
-        }
+        public static Vector3 Left = new Vector3(-1, 0, 0);
 
         /// <summary>
         /// Gets the forward vector (0,0,-1).
         /// </summary>
-        public static Vector3 Forward
-        {
-            get
-            {
-                return new Vector3()
-                {
-                    X = 0,
-                    Y = 0,
-                    Z = -1
-                };
-            }
-        }
+        public static Vector3 Forward = new Vector3(0, 0, -1);
 
         /// <summary>
         /// Gets the back vector (0,0,1).
         /// </summary>
-        public static Vector3 Backward
-        {
-            get
-            {
-                return new Vector3()
-                {
-                    X = 0,
-                    Y = 0,
-                    Z = 1
-                };
-            }
-        }
+        public static Vector3 Backward = new Vector3(0, 0, 1);
 
         /// <summary>
         /// Gets a vector pointing along the X axis.
         /// </summary>
-        public static Vector3 UnitX
-        {
-            get { return new Vector3 { X = 1 }; }
-        }
+        public static Vector3 UnitX = new Vector3(1, 0, 0);
 
         /// <summary>
         /// Gets a vector pointing along the Y axis.
         /// </summary>
-        public static Vector3 UnitY
-        {
-            get { return new Vector3 { Y = 1 }; }
-        }
+        public static Vector3 UnitY = new Vector3(0, 1, 0);
 
         /// <summary>
         /// Gets a vector pointing along the Z axis.
         /// </summary>
-        public static Vector3 UnitZ
-        {
-            get { return new Vector3 { Z = 1 }; }
-        }
+        public static Vector3 UnitZ = new Vector3(0, 0, 1);
 
         /// <summary>
         /// Computes the cross product between two vectors.

@@ -465,45 +465,32 @@ namespace BEPUutilities
         /// <summary>
         /// Gets the zero vector.
         /// </summary>
-        public static Vector4 Zero
-        {
-            get
-            {
-                return new Vector4();
-            }
-        }
+        public static Vector4 Zero = new Vector4();
+
+        /// <summary>
+        /// Gets the one vector.
+        /// </summary>
+        public static Vector4 One = new Vector4(1, 1, 1, 1);
 
         /// <summary>
         /// Gets a vector pointing along the X axis.
         /// </summary>
-        public static Vector4 UnitX
-        {
-            get { return new Vector4 { X = 1 }; }
-        }
+        public static Vector4 UnitX = new Vector4(1, 0, 0, 0);
 
         /// <summary>
         /// Gets a vector pointing along the Y axis.
         /// </summary>
-        public static Vector4 UnitY
-        {
-            get { return new Vector4 { Y = 1 }; }
-        }
+        public static Vector4 UnitY = new Vector4(0, 1, 0, 0);
 
         /// <summary>
         /// Gets a vector pointing along the Z axis.
         /// </summary>
-        public static Vector4 UnitZ
-        {
-            get { return new Vector4 { Z = 1 }; }
-        }
+        public static Vector4 UnitZ = new Vector4(0, 0, 1, 0);
 
         /// <summary>
         /// Gets a vector pointing along the W axis.
         /// </summary>
-        public static Vector4 UnitW
-        {
-            get { return new Vector4 { W = 1 }; }
-        }
+        public static Vector4 UnitW = new Vector4(0, 0, 0, 1);
 
         /// <summary>
         /// Normalizes the given vector.
