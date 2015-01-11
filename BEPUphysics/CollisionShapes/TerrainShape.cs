@@ -11,7 +11,7 @@ namespace BEPUphysics.CollisionShapes
     /// The local space data needed by a Terrain collidable.
     /// Contains the Heightmap and other information.
     ///</summary>
-    public class TerrainShape : CollisionShape
+    public class TerrainShape : EntityShape
     {
         private float[,] heights;
         //note: changing heights in array does not fire OnShapeChanged automatically.
@@ -50,7 +50,7 @@ namespace BEPUphysics.CollisionShapes
                 OnShapeChanged();
             }
         }
-
+        
         ///<summary>
         /// Constructs a TerrainShape.
         ///</summary>
@@ -659,6 +659,42 @@ namespace BEPUphysics.CollisionShapes
                     c = new TerrainVertexIndices { ColumnIndex = columnIndex, RowIndex = rowIndex + 1 };
                 }
             }
+        }
+
+        public override BroadPhaseEntries.MobileCollidables.EntityCollidable GetCollidableInstance()
+        {
+            return new BEPUphysics.BroadPhaseEntries.Terrain(this, new Vector3(1, 1, 1));
+        }
+
+        public override void GetBoundingBox(ref RigidTransform shapeTransform, out BoundingBox boundingBox)
+        {
+#if !WINDOWS
+            boundingBox = new BoundingBox();
+#endif
+            float halfWidth, halfHeight, halfLength;
+            halfHeight = 0.5f;
+            halfWidth = heights.GetLength(0) * 0.5f;
+            halfLength = heights.GetLength(1) * 0.5f;
+
+            Matrix3x3 o;
+            Matrix3x3.CreateFromQuaternion(ref shapeTransform.Orientation, out o);
+            //Sample the local directions from the orientation matrix, implicitly transposed.
+            //Notice only three directions are used.  Due to box symmetry, 'left' is just -right.
+            var right = new Vector3(Math.Sign(o.M11) * halfWidth, Math.Sign(o.M21) * halfHeight, Math.Sign(o.M31) * halfLength);
+
+            var up = new Vector3(Math.Sign(o.M12) * halfWidth, Math.Sign(o.M22) * halfHeight, Math.Sign(o.M32) * halfLength);
+
+            var backward = new Vector3(Math.Sign(o.M13) * halfWidth, Math.Sign(o.M23) * halfHeight, Math.Sign(o.M33) * halfLength);
+
+
+            //Rather than transforming each axis independently (and doing three times as many operations as required), just get the 3 required values directly.
+            Vector3 offset;
+            TransformLocalExtremePoints(ref right, ref up, ref backward, ref o, out offset);
+
+            //The positive and negative vectors represent the X, Y and Z coordinates of the extreme points in world space along the world space axes.
+            Vector3.Add(ref shapeTransform.Position, ref offset, out boundingBox.Max);
+            Vector3.Subtract(ref shapeTransform.Position, ref offset, out boundingBox.Min);
+
         }
     }
 

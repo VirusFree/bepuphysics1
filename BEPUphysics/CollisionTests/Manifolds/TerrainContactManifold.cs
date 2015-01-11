@@ -30,14 +30,15 @@ namespace BEPUphysics.CollisionTests.Manifolds
         protected internal override int FindOverlappingTriangles(float dt)
         {
             BoundingBox boundingBox;
-            convex.Shape.GetLocalBoundingBox(ref convex.worldTransform, ref terrain.worldTransform, out boundingBox);
+            var scaledWorldTransform = terrain.ScaledWorldTransform;
+            convex.Shape.GetLocalBoundingBox(ref convex.worldTransform, ref scaledWorldTransform, out boundingBox);
 
 
             if (convex.entity != null)
             {
                 Vector3 transformedVelocity;
                 Matrix3x3 inverse;
-                Matrix3x3.Invert(ref terrain.worldTransform.LinearTransform, out inverse);
+                Matrix3x3.Invert(ref scaledWorldTransform.LinearTransform, out inverse);
                 Matrix3x3.Transform(ref convex.entity.linearVelocity, ref inverse, out transformedVelocity);
                 Vector3.Multiply(ref transformedVelocity, dt, out transformedVelocity);
 
@@ -70,7 +71,8 @@ namespace BEPUphysics.CollisionTests.Manifolds
         /// <param name="fromMeshLocalToConvexLocal">Transform to apply to native local triangles to bring them into the local space of the convex.</param>
         protected override void PrecomputeTriangleTransform(ref AffineTransform convexInverseWorldTransform, out AffineTransform fromMeshLocalToConvexLocal)
         {
-            AffineTransform.Multiply(ref terrain.worldTransform, ref convexInverseWorldTransform, out fromMeshLocalToConvexLocal);
+            var scaledWorldTransform = terrain.ScaledWorldTransform;
+            AffineTransform.Multiply(ref scaledWorldTransform, ref convexInverseWorldTransform, out fromMeshLocalToConvexLocal);
         }
 
         protected override bool ConfigureLocalTriangle(int i, TriangleShape localTriangleShape, out TriangleIndices indices)
@@ -104,11 +106,12 @@ namespace BEPUphysics.CollisionTests.Manifolds
             //If the candidates list is empty, then let's see if the convex is in the 'thickness' of the terrain.
             if (candidates.Count == 0 & terrain.thickness > 0)
             {
+                var scaledWorldTransform = terrain.ScaledWorldTransform;
                 RayHit rayHit;
-                Ray ray = new Ray { Position = convex.worldTransform.Position, Direction = terrain.worldTransform.LinearTransform.Up };
+                Ray ray = new Ray { Position = convex.worldTransform.Position, Direction = scaledWorldTransform.LinearTransform.Up };
                 ray.Direction.Normalize();
                 //The raycast has to use doublesidedness, since we're casting from the bottom up.
-                if (terrain.Shape.RayCast(ref ray, terrain.thickness, ref terrain.worldTransform, TriangleSidedness.DoubleSided, out rayHit))
+                if (terrain.Shape.RayCast(ref ray, terrain.thickness, ref scaledWorldTransform, TriangleSidedness.DoubleSided, out rayHit))
                 {
                     //Found a hit!
                     rayHit.Normal.Normalize();

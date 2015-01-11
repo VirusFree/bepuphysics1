@@ -31,13 +31,14 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
 
         protected override TriangleCollidable GetOpposingCollidable(int index)
         {
+            var scaledWorldTransform = mesh.ScaledWorldTransform;
             //Construct a TriangleCollidable from the static mesh.
             var toReturn = PhysicsResources.GetTriangleCollidable();
-            Vector3 terrainUp = new Vector3(mesh.worldTransform.LinearTransform.M21, mesh.worldTransform.LinearTransform.M22, mesh.worldTransform.LinearTransform.M23);
+            Vector3 terrainUp = new Vector3(scaledWorldTransform.LinearTransform.M21, scaledWorldTransform.LinearTransform.M22, scaledWorldTransform.LinearTransform.M23);
             float dot;
             Vector3 AB, AC, normal;
             var shape = toReturn.Shape;
-            mesh.Shape.GetTriangle(index, ref mesh.worldTransform, out shape.vA, out shape.vB, out shape.vC);
+            mesh.Shape.GetTriangle(index, ref scaledWorldTransform, out shape.vA, out shape.vB, out shape.vC);
             Vector3 center;
             Vector3.Add(ref shape.vA, ref shape.vB, out center);
             Vector3.Add(ref center, ref shape.vC, out center);
@@ -117,10 +118,11 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
         {
             var overlappedElements = new QuickList<int>(BufferPools<int>.Thread);
             BoundingBox localBoundingBox;
+            var scaledWorldTransform = mesh.ScaledWorldTransform;
 
             Vector3 sweep;
             Vector3.Multiply(ref mobileMesh.entity.linearVelocity, dt, out sweep);
-            mobileMesh.Shape.GetSweptLocalBoundingBox(ref mobileMesh.worldTransform, ref mesh.worldTransform, ref sweep, out localBoundingBox);
+            mobileMesh.Shape.GetSweptLocalBoundingBox(ref mobileMesh.worldTransform, ref scaledWorldTransform, ref sweep, out localBoundingBox);
             mesh.Shape.GetOverlaps(localBoundingBox, ref overlappedElements);
             for (int i = 0; i < overlappedElements.Count; i++)
             {

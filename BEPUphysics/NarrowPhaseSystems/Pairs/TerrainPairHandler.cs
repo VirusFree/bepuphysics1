@@ -131,13 +131,14 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
                 timeOfImpact = 1;
                 if (minimumRadius * minimumRadius < velocitySquared)
                 {
+                    var scaledWorldTransform = terrain.ScaledWorldTransform;
                     var triangle = PhysicsThreadResources.GetTriangle();
                     triangle.collisionMargin = 0;
-                    Vector3 terrainUp = new Vector3(terrain.worldTransform.LinearTransform.M21, terrain.worldTransform.LinearTransform.M22, terrain.worldTransform.LinearTransform.M23);
+                    Vector3 terrainUp = new Vector3(scaledWorldTransform.LinearTransform.M21, scaledWorldTransform.LinearTransform.M22, scaledWorldTransform.LinearTransform.M23);
                     //Spherecast against all triangles to find the earliest time.
                     for (int i = 0; i < TerrainManifold.overlappedTriangles.Count; i++)
                     {
-                        terrain.Shape.GetTriangle(TerrainManifold.overlappedTriangles.Elements[i], ref terrain.worldTransform, out triangle.vA, out triangle.vB, out triangle.vC);
+                        terrain.Shape.GetTriangle(TerrainManifold.overlappedTriangles.Elements[i], ref scaledWorldTransform, out triangle.vA, out triangle.vB, out triangle.vC);
                         //Put the triangle into 'localish' space of the convex.
                         Vector3.Subtract(ref triangle.vA, ref convex.worldTransform.Position, out triangle.vA);
                         Vector3.Subtract(ref triangle.vB, ref convex.worldTransform.Position, out triangle.vB);

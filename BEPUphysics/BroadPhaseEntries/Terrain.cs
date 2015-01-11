@@ -6,13 +6,14 @@ using BEPUphysics.CollisionTests.CollisionAlgorithms;
 using BEPUphysics.OtherSpaceStages;
 using BEPUutilities.DataStructures;
 using BEPUutilities.ResourceManagement;
+using BEPUphysics.Materials;
 
 namespace BEPUphysics.BroadPhaseEntries
 {
     ///<summary>
     /// Heightfield-based unmovable collidable object.
     ///</summary>
-    public class Terrain : StaticCollidable
+    public class Terrain : MobileCollidables.EntityCollidable
     {
         ///<summary>
         /// Gets the shape of this collidable.
@@ -34,7 +35,25 @@ namespace BEPUphysics.BroadPhaseEntries
         /// </summary>
         internal TriangleSidedness sidedness;
 
-        internal AffineTransform worldTransform;
+
+        internal Vector3 scale;
+
+        internal AffineTransform ScaledWorldTransform
+        {
+            get
+            {
+                AffineTransform baseTransf;
+                AffineTransform.CreateFromRigidTransform(ref base.worldTransform, out baseTransf);
+                AffineTransform scaleTransf = AffineTransform.Identity;
+                Matrix3x3.CreateScale(ref scale, out scaleTransf.LinearTransform);
+                AffineTransform final;
+                AffineTransform.Multiply(ref scaleTransf, ref baseTransf, out final);
+                return final;
+            }
+        }
+
+        /*
+        //TODO: override child worldtransform
         ///<summary>
         /// Gets or sets the affine transform of the terrain.
         ///</summary>
@@ -42,11 +61,11 @@ namespace BEPUphysics.BroadPhaseEntries
         {
             get
             {
-                return worldTransform;
+                return scaledWorldTransform;
             }
             set
             {
-                worldTransform = value;
+                scaledWorldTransform = value;
 
                 //Sidedness must be calibrated based on the transform.
                 //To do this, note a few things:
@@ -55,10 +74,10 @@ namespace BEPUphysics.BroadPhaseEntries
                 //3) Normals can't be transformed by a direct application of a general affine transform. The adjugate transpose must be used.
 
                 Matrix3x3 normalTransform;
-                Matrix3x3.AdjugateTranspose(ref worldTransform.LinearTransform, out normalTransform);
+                Matrix3x3.AdjugateTranspose(ref scaledWorldTransform.LinearTransform, out normalTransform);
 
                 //If the world 'up' doesn't match the normal 'up', some reflection occurred which requires a winding flip.
-                if (Vector3.Dot(normalTransform.Up, worldTransform.LinearTransform.Up) < 0)
+                if (Vector3.Dot(normalTransform.Up, scaledWorldTransform.LinearTransform.Up) < 0)
                 {
                     sidedness = TriangleSidedness.Clockwise;
                 }
@@ -70,7 +89,7 @@ namespace BEPUphysics.BroadPhaseEntries
 
             }
         }
-
+        */
 
         internal bool improveBoundaryBehavior = true;
         /// <summary>
@@ -89,40 +108,7 @@ namespace BEPUphysics.BroadPhaseEntries
                 improveBoundaryBehavior = value;
             }
         }
-
-        protected internal ContactEventManager<Terrain> events;
-        ///<summary>
-        /// Gets the event manager used by the Terrain.
-        ///</summary>
-        public ContactEventManager<Terrain> Events
-        {
-            get
-            {
-                return events;
-            }
-            set
-            {
-                if (value.Owner != null && //Can't use a manager which is owned by a different entity.
-                    value != events) //Stay quiet if for some reason the same event manager is being set.
-                    throw new ArgumentException("Event manager is already owned by a Terrain; event managers cannot be shared.");
-                if (events != null)
-                    events.Owner = null;
-                events = value;
-                if (events != null)
-                    events.Owner = this;
-            }
-        }
-
-        protected internal override IContactEventTriggerer EventTriggerer
-        {
-            get { return events; }
-        }
-
-        protected override IDeferredEventCreator EventCreator
-        {
-            get { return events; }
-        }
-
+        
 
         internal float thickness;
         /// <summary>
@@ -140,8 +126,9 @@ namespace BEPUphysics.BroadPhaseEntries
                 if (value < 0)
                     throw new ArgumentException("Cannot use a negative thickness value.");
 
+                var scaledWorldTransform = ScaledWorldTransform;
                 //Modify the bounding box to include the new thickness.
-                Vector3 down = Vector3.Normalize(worldTransform.LinearTransform.Down);
+                Vector3 down = Vector3.Normalize(scaledWorldTransform.LinearTransform.Down);
                 Vector3 thicknessOffset = down * (value - thickness);
                 //Use the down direction rather than the thicknessOffset to determine which
                 //component of the bounding box to subtract, since the down direction contains all
@@ -169,12 +156,12 @@ namespace BEPUphysics.BroadPhaseEntries
         ///</summary>
         ///<param name="shape">Shape to use for the terrain.</param>
         ///<param name="worldTransform">Transform to use for the terrain.</param>
-        public Terrain(TerrainShape shape, AffineTransform worldTransform)
+        public Terrain(TerrainShape shape, Vector3 Scaling)
+            : base(shape)
         {
-            WorldTransform = worldTransform;
-            Shape = shape;
-
-            Events = new ContactEventManager<Terrain>();
+            Events = new ContactEventManager<MobileCollidables.EntityCollidable>();
+            materialChangedDelegate = OnMaterialChanged;
+            scale = Scaling;
         }
 
 
@@ -183,8 +170,8 @@ namespace BEPUphysics.BroadPhaseEntries
         ///</summary>
         ///<param name="heights">Height data to use to create the TerrainShape.</param>
         ///<param name="worldTransform">Transform to use for the terrain.</param>
-        public Terrain(float[,] heights, AffineTransform worldTransform)
-            : this(new TerrainShape(heights), worldTransform)
+        public Terrain(float[,] heights, Vector3 Scaling)
+            : this(new TerrainShape(heights), Scaling)
         {
         }
 
@@ -194,9 +181,10 @@ namespace BEPUphysics.BroadPhaseEntries
         ///</summary>
         public override void UpdateBoundingBox()
         {
-            Shape.GetBoundingBox(ref worldTransform, out boundingBox);
+            var scaledWorldTransform = ScaledWorldTransform;
+            Shape.GetBoundingBox(ref scaledWorldTransform, out boundingBox);
             //Include the thickness of the terrain.
-            Vector3 thicknessOffset = Vector3.Normalize(worldTransform.LinearTransform.Down) * thickness;
+            Vector3 thicknessOffset = Vector3.Normalize(scaledWorldTransform.LinearTransform.Down) * thickness;
             if (thicknessOffset.X < 0)
                 boundingBox.Min.X += thicknessOffset.X;
             else
@@ -222,7 +210,8 @@ namespace BEPUphysics.BroadPhaseEntries
         /// <returns>Whether or not the ray hit the entry.</returns>
         public override bool RayCast(Ray ray, float maximumLength, out RayHit rayHit)
         {
-            return Shape.RayCast(ref ray, maximumLength, ref worldTransform, out rayHit);
+            var scaledWorldTransform = ScaledWorldTransform;
+            return Shape.RayCast(ref ray, maximumLength, ref scaledWorldTransform, out rayHit);
         }
 
         /// <summary>
@@ -237,7 +226,8 @@ namespace BEPUphysics.BroadPhaseEntries
         {
             hit = new RayHit();
             BoundingBox localSpaceBoundingBox;
-            castShape.GetSweptLocalBoundingBox(ref startingTransform, ref worldTransform, ref sweep, out localSpaceBoundingBox);
+            var scaledWorldTransform = ScaledWorldTransform;
+            castShape.GetSweptLocalBoundingBox(ref startingTransform, ref scaledWorldTransform, ref sweep, out localSpaceBoundingBox);
             var tri = PhysicsThreadResources.GetTriangle();
             var hitElements = new QuickList<int>(BufferPools<int>.Thread);
             if (Shape.GetOverlaps(localSpaceBoundingBox, ref hitElements))
@@ -245,7 +235,7 @@ namespace BEPUphysics.BroadPhaseEntries
                 hit.T = float.MaxValue;
                 for (int i = 0; i < hitElements.Count; i++)
                 {
-                    Shape.GetTriangle(hitElements.Elements[i], ref worldTransform, out tri.vA, out tri.vB, out tri.vC);
+                    Shape.GetTriangle(hitElements.Elements[i], ref scaledWorldTransform, out tri.vA, out tri.vB, out tri.vC);
                     Vector3 center;
                     Vector3.Add(ref tri.vA, ref tri.vB, out center);
                     Vector3.Add(ref center, ref tri.vC, out center);
@@ -287,12 +277,48 @@ namespace BEPUphysics.BroadPhaseEntries
         ///<param name="position">Position at the given indices.</param>
         public void GetPosition(int i, int j, out Vector3 position)
         {
-            Shape.GetPosition(i, j, ref worldTransform, out position);
+            var scaledWorldTransform = ScaledWorldTransform;
+            Shape.GetPosition(i, j, ref scaledWorldTransform, out position);
         }
 
+        internal Material material;
+        //NOT thread safe due to material change pair update.
+        ///<summary>
+        /// Gets or sets the material used by the collidable.
+        ///</summary>
+        public Material Material
+        {
+            get
+            {
+                return material;
+            }
+            set
+            {
+                if (material != null)
+                    material.MaterialChanged -= materialChangedDelegate;
+                material = value;
+                if (material != null)
+                    material.MaterialChanged += materialChangedDelegate;
+                OnMaterialChanged(material);
+            }
+        }
 
+        Action<Material> materialChangedDelegate;
+        protected virtual void OnMaterialChanged(Material newMaterial)
+        {
+            for (int i = 0; i < pairs.Count; i++)
+            {
+                pairs[i].UpdateMaterialProperties();
+            }
+        }
 
+        protected internal override void UpdateBoundingBoxInternal(float dt)
+        {
+            var scaledWorldTransform = ScaledWorldTransform;
 
+            Shape.GetBoundingBox(ref scaledWorldTransform, out boundingBox);
 
+            ExpandBoundingBox(ref boundingBox, dt);
+        }
     }
 }
