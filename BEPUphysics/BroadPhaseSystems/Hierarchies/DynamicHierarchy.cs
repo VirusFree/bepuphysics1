@@ -229,7 +229,8 @@ namespace BEPUphysics.BroadPhaseSystems.Hierarchies
                 entry.UpdateBoundingBox();
             //Could buffer additions to get a better construction in the tree.
             var node = leafNodes.Take();
-            node.Initialize(entry);
+            if (node != null)
+                node.Initialize(entry);
             if (root == null)
             {
                 //Empty tree.  This is the first and only node.
