@@ -21,10 +21,46 @@ namespace BEPUphysics.CollisionShapes
         /// </summary>
         public EntityShape Shape;
         /// <summary>
+        /// Collidable used by the compound.
+        /// </summary>
+        public EntityCollidable Collidable;
+        /// <summary>
         /// Weight of the entry.  This defines how much the entry contributes to its owner
         /// for the purposes of center of rotation computation.
         /// </summary>
         public float Weight;
+
+        ///<summary>
+        /// Constructs a new compound shape entry using the volume of the shape as a weight.
+        ///</summary>
+        ///<param name="shape">Shape to use.</param>
+        ///<param name="localTransform">Local transform of the shape.</param>
+        ///<param name="weight">Weight of the entry.  This defines how much the entry contributes to its owner
+        /// for the purposes of center of rotation computation.</param>
+        public CompoundShapeEntry(EntityCollidable collidable, RigidTransform localTransform, float weight)
+        {
+            localTransform.Validate();
+            LocalTransform = localTransform;
+            Shape = collidable.Shape;
+            Collidable = collidable;
+            Weight = weight;
+        }
+
+        ///<summary>
+        /// Constructs a new compound shape entry using the volume of the shape as a weight.
+        ///</summary>
+        ///<param name="shape">Shape to use.</param>
+        ///<param name="localTransform">Local transform of the shape.</param>
+        ///<param name="weight">Weight of the entry.  This defines how much the entry contributes to its owner
+        /// for the purposes of center of rotation computation.</param>
+        public CompoundShapeEntry(EntityCollidable collidable, RigidTransform localTransform)
+        {
+            localTransform.Validate();
+            LocalTransform = localTransform;
+            Shape = collidable.Shape;
+            Collidable = collidable;
+            Weight = Shape.Volume;
+        }
 
         ///<summary>
         /// Constructs a new compound shape entry using the volume of the shape as a weight.
@@ -38,6 +74,7 @@ namespace BEPUphysics.CollisionShapes
             localTransform.Validate();
             LocalTransform = localTransform;
             Shape = shape;
+            Collidable = null;
             Weight = weight;
         }
 
@@ -53,6 +90,7 @@ namespace BEPUphysics.CollisionShapes
             position.Validate();
             LocalTransform = new RigidTransform(position);
             Shape = shape;
+            Collidable = null;
             Weight = weight;
         }
 
@@ -68,8 +106,10 @@ namespace BEPUphysics.CollisionShapes
             orientation.Validate();
             LocalTransform = new RigidTransform(orientation);
             Shape = shape;
+            Collidable = null;
             Weight = weight;
         }
+
         ///<summary>
         /// Constructs a new compound shape entry using the volume of the shape as a weight.
         ///</summary>
@@ -80,6 +120,7 @@ namespace BEPUphysics.CollisionShapes
         {
             LocalTransform = RigidTransform.Identity;
             Shape = shape;
+            Collidable = null;
             Weight = weight;
         }
 
@@ -93,6 +134,7 @@ namespace BEPUphysics.CollisionShapes
             localTransform.Validate();
             LocalTransform = localTransform;
             Shape = shape;
+            Collidable = null;
             Weight = shape.Volume;
         }
 
@@ -106,6 +148,7 @@ namespace BEPUphysics.CollisionShapes
             position.Validate();
             LocalTransform = new RigidTransform(position);
             Shape = shape;
+            Collidable = null;
             Weight = shape.Volume;
         }
 
@@ -119,6 +162,7 @@ namespace BEPUphysics.CollisionShapes
             orientation.Validate();
             LocalTransform = new RigidTransform(orientation);
             Shape = shape;
+            Collidable = null;
             Weight = shape.Volume;
         }
         ///<summary>
@@ -129,6 +173,7 @@ namespace BEPUphysics.CollisionShapes
         {
             LocalTransform = RigidTransform.Identity;
             Shape = shape;
+            Collidable = null;
             Weight = shape.Volume;
         }
     }

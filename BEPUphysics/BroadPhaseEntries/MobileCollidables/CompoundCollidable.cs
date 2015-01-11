@@ -82,7 +82,7 @@ namespace BEPUphysics.BroadPhaseEntries.MobileCollidables
 
         private CompoundChild GetChild(CompoundChildData data, int index)
         {
-            var instance = data.Entry.Shape.GetCollidableInstance();
+            var instance = data.Entry.Collidable!=null?data.Entry.Collidable: data.Entry.Shape.GetCollidableInstance();
 
             if (data.Events != null)
                 instance.Events = data.Events;
@@ -102,7 +102,7 @@ namespace BEPUphysics.BroadPhaseEntries.MobileCollidables
 
         private CompoundChild GetChild(CompoundShapeEntry entry, int index)
         {
-            var instance = entry.Shape.GetCollidableInstance();
+            var instance = entry.Collidable != null ? entry.Collidable : entry.Shape.GetCollidableInstance();
             //Establish the link between the child event manager and our event manager.
             instance.events.Parent = Events;
             return new CompoundChild(Shape, instance, index);
