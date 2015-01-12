@@ -30,7 +30,7 @@ namespace BEPUphysics.CollisionTests.Manifolds
         protected internal override int FindOverlappingTriangles(float dt)
         {
             BoundingBox boundingBox;
-            var scaledWorldTransform = terrain.ScaledWorldTransform;
+            var scaledWorldTransform = terrain.scaledWorldTransform;
             convex.Shape.GetLocalBoundingBox(ref convex.worldTransform, ref scaledWorldTransform, out boundingBox);
 
 
@@ -71,7 +71,7 @@ namespace BEPUphysics.CollisionTests.Manifolds
         /// <param name="fromMeshLocalToConvexLocal">Transform to apply to native local triangles to bring them into the local space of the convex.</param>
         protected override void PrecomputeTriangleTransform(ref AffineTransform convexInverseWorldTransform, out AffineTransform fromMeshLocalToConvexLocal)
         {
-            var scaledWorldTransform = terrain.ScaledWorldTransform;
+            var scaledWorldTransform = terrain.scaledWorldTransform;
             AffineTransform.Multiply(ref scaledWorldTransform, ref convexInverseWorldTransform, out fromMeshLocalToConvexLocal);
         }
 
@@ -106,7 +106,7 @@ namespace BEPUphysics.CollisionTests.Manifolds
             //If the candidates list is empty, then let's see if the convex is in the 'thickness' of the terrain.
             if (candidates.Count == 0 & terrain.thickness > 0)
             {
-                var scaledWorldTransform = terrain.ScaledWorldTransform;
+                var scaledWorldTransform = terrain.scaledWorldTransform;
                 RayHit rayHit;
                 Ray ray = new Ray { Position = convex.worldTransform.Position, Direction = scaledWorldTransform.LinearTransform.Up };
                 ray.Direction.Normalize();

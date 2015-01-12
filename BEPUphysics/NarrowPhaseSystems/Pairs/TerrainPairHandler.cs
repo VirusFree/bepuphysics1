@@ -86,7 +86,7 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
             broadPhaseOverlap.entryA = convex;
             broadPhaseOverlap.entryB = terrain;
 
-            UpdateMaterialProperties(convex.entity != null ? convex.entity.material : null, terrain.material);
+            UpdateMaterialProperties(convex.entity != null ? convex.entity.material : null, terrain.entity == null ? null : terrain.entity.material);
 
             base.Initialize(entryA, entryB);
 
@@ -131,7 +131,7 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
                 timeOfImpact = 1;
                 if (minimumRadius * minimumRadius < velocitySquared)
                 {
-                    var scaledWorldTransform = terrain.ScaledWorldTransform;
+                    var scaledWorldTransform = terrain.scaledWorldTransform;
                     var triangle = PhysicsThreadResources.GetTriangle();
                     triangle.collisionMargin = 0;
                     Vector3 terrainUp = new Vector3(scaledWorldTransform.LinearTransform.M21, scaledWorldTransform.LinearTransform.M22, scaledWorldTransform.LinearTransform.M23);

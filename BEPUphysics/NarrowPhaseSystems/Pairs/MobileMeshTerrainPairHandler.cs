@@ -22,16 +22,16 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
         }
         public override Entities.Entity EntityB
         {
-            get { return null; }
+            get { return mesh.entity; }
         }
         protected override Materials.Material MaterialB
         {
-            get { return mesh.material; }
+            get { return mesh.entity == null ? null : mesh.entity.material; }
         }
 
         protected override TriangleCollidable GetOpposingCollidable(int index)
         {
-            var scaledWorldTransform = mesh.ScaledWorldTransform;
+            var scaledWorldTransform = mesh.scaledWorldTransform;
             //Construct a TriangleCollidable from the static mesh.
             var toReturn = PhysicsResources.GetTriangleCollidable();
             Vector3 terrainUp = new Vector3(scaledWorldTransform.LinearTransform.M21, scaledWorldTransform.LinearTransform.M22, scaledWorldTransform.LinearTransform.M23);
@@ -118,7 +118,7 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
         {
             var overlappedElements = new QuickList<int>(BufferPools<int>.Thread);
             BoundingBox localBoundingBox;
-            var scaledWorldTransform = mesh.ScaledWorldTransform;
+            var scaledWorldTransform = mesh.scaledWorldTransform;
 
             Vector3 sweep;
             Vector3.Multiply(ref mobileMesh.entity.linearVelocity, dt, out sweep);

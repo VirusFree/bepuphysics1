@@ -38,59 +38,38 @@ namespace BEPUphysics.BroadPhaseEntries
 
         internal Vector3 scale;
 
-        internal AffineTransform ScaledWorldTransform
+        internal AffineTransform scaledWorldTransform = AffineTransform.Identity;
+
+        public override void UpdateWorldTransform(ref Vector3 position, ref Quaternion orientation)
         {
-            get
+            base.UpdateWorldTransform(ref position, ref orientation);
+
+            AffineTransform baseTransf;
+            AffineTransform.CreateFromRigidTransform(ref base.worldTransform, out baseTransf);
+            AffineTransform scaleTransf = AffineTransform.Identity;
+            Matrix3x3.CreateScale(ref scale, out scaleTransf.LinearTransform);
+            AffineTransform.Multiply(ref scaleTransf, ref baseTransf, out scaledWorldTransform);
+
+            //Sidedness must be calibrated based on the transform.
+            //To do this, note a few things:
+            //1) All triangles have the same sidedness in the terrain. Winding is consistent. Calibrating for one triangle calibrates for all.
+            //2) Taking a triangle from the terrain into world space and computing the normal there for comparison is unneeded. Picking a fixed valid normal in local space (like {0, 1, 0}) is sufficient.
+            //3) Normals can't be transformed by a direct application of a general affine transform. The adjugate transpose must be used.
+
+            Matrix3x3 normalTransform;
+            Matrix3x3.AdjugateTranspose(ref scaledWorldTransform.LinearTransform, out normalTransform);
+
+            //If the world 'up' doesn't match the normal 'up', some reflection occurred which requires a winding flip.
+            if (Vector3.Dot(normalTransform.Up, scaledWorldTransform.LinearTransform.Up) < 0)
             {
-                AffineTransform baseTransf;
-                AffineTransform.CreateFromRigidTransform(ref base.worldTransform, out baseTransf);
-                AffineTransform scaleTransf = AffineTransform.Identity;
-                Matrix3x3.CreateScale(ref scale, out scaleTransf.LinearTransform);
-                AffineTransform final;
-                AffineTransform.Multiply(ref scaleTransf, ref baseTransf, out final);
-                return final;
+                sidedness = TriangleSidedness.Clockwise;
+            }
+            else
+            {
+                sidedness = TriangleSidedness.Counterclockwise;
             }
         }
-
-        /*
-        //TODO: override child worldtransform
-        ///<summary>
-        /// Gets or sets the affine transform of the terrain.
-        ///</summary>
-        public AffineTransform WorldTransform
-        {
-            get
-            {
-                return scaledWorldTransform;
-            }
-            set
-            {
-                scaledWorldTransform = value;
-
-                //Sidedness must be calibrated based on the transform.
-                //To do this, note a few things:
-                //1) All triangles have the same sidedness in the terrain. Winding is consistent. Calibrating for one triangle calibrates for all.
-                //2) Taking a triangle from the terrain into world space and computing the normal there for comparison is unneeded. Picking a fixed valid normal in local space (like {0, 1, 0}) is sufficient.
-                //3) Normals can't be transformed by a direct application of a general affine transform. The adjugate transpose must be used.
-
-                Matrix3x3 normalTransform;
-                Matrix3x3.AdjugateTranspose(ref scaledWorldTransform.LinearTransform, out normalTransform);
-
-                //If the world 'up' doesn't match the normal 'up', some reflection occurred which requires a winding flip.
-                if (Vector3.Dot(normalTransform.Up, scaledWorldTransform.LinearTransform.Up) < 0)
-                {
-                    sidedness = TriangleSidedness.Clockwise;
-                }
-                else
-                {
-                    sidedness = TriangleSidedness.Counterclockwise;
-                }
-
-
-            }
-        }
-        */
-
+        
         internal bool improveBoundaryBehavior = true;
         /// <summary>
         /// Gets or sets whether or not the collision system should attempt to improve contact behavior at the boundaries between triangles.
@@ -126,7 +105,6 @@ namespace BEPUphysics.BroadPhaseEntries
                 if (value < 0)
                     throw new ArgumentException("Cannot use a negative thickness value.");
 
-                var scaledWorldTransform = ScaledWorldTransform;
                 //Modify the bounding box to include the new thickness.
                 Vector3 down = Vector3.Normalize(scaledWorldTransform.LinearTransform.Down);
                 Vector3 thicknessOffset = down * (value - thickness);
@@ -160,7 +138,6 @@ namespace BEPUphysics.BroadPhaseEntries
             : base(shape)
         {
             Events = new ContactEventManager<MobileCollidables.EntityCollidable>();
-            materialChangedDelegate = OnMaterialChanged;
             scale = Scaling;
         }
 
@@ -181,7 +158,6 @@ namespace BEPUphysics.BroadPhaseEntries
         ///</summary>
         public override void UpdateBoundingBox()
         {
-            var scaledWorldTransform = ScaledWorldTransform;
             Shape.GetBoundingBox(ref scaledWorldTransform, out boundingBox);
             //Include the thickness of the terrain.
             Vector3 thicknessOffset = Vector3.Normalize(scaledWorldTransform.LinearTransform.Down) * thickness;
@@ -210,7 +186,6 @@ namespace BEPUphysics.BroadPhaseEntries
         /// <returns>Whether or not the ray hit the entry.</returns>
         public override bool RayCast(Ray ray, float maximumLength, out RayHit rayHit)
         {
-            var scaledWorldTransform = ScaledWorldTransform;
             return Shape.RayCast(ref ray, maximumLength, ref scaledWorldTransform, out rayHit);
         }
 
@@ -226,7 +201,6 @@ namespace BEPUphysics.BroadPhaseEntries
         {
             hit = new RayHit();
             BoundingBox localSpaceBoundingBox;
-            var scaledWorldTransform = ScaledWorldTransform;
             castShape.GetSweptLocalBoundingBox(ref startingTransform, ref scaledWorldTransform, ref sweep, out localSpaceBoundingBox);
             var tri = PhysicsThreadResources.GetTriangle();
             var hitElements = new QuickList<int>(BufferPools<int>.Thread);
@@ -277,45 +251,12 @@ namespace BEPUphysics.BroadPhaseEntries
         ///<param name="position">Position at the given indices.</param>
         public void GetPosition(int i, int j, out Vector3 position)
         {
-            var scaledWorldTransform = ScaledWorldTransform;
             Shape.GetPosition(i, j, ref scaledWorldTransform, out position);
         }
-
-        internal Material material;
-        //NOT thread safe due to material change pair update.
-        ///<summary>
-        /// Gets or sets the material used by the collidable.
-        ///</summary>
-        public Material Material
-        {
-            get
-            {
-                return material;
-            }
-            set
-            {
-                if (material != null)
-                    material.MaterialChanged -= materialChangedDelegate;
-                material = value;
-                if (material != null)
-                    material.MaterialChanged += materialChangedDelegate;
-                OnMaterialChanged(material);
-            }
-        }
-
-        Action<Material> materialChangedDelegate;
-        protected virtual void OnMaterialChanged(Material newMaterial)
-        {
-            for (int i = 0; i < pairs.Count; i++)
-            {
-                pairs[i].UpdateMaterialProperties();
-            }
-        }
+        
 
         protected internal override void UpdateBoundingBoxInternal(float dt)
         {
-            var scaledWorldTransform = ScaledWorldTransform;
-
             Shape.GetBoundingBox(ref scaledWorldTransform, out boundingBox);
 
             ExpandBoundingBox(ref boundingBox, dt);
