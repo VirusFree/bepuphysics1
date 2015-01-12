@@ -38,6 +38,22 @@ namespace BEPUphysics.Constraints.TwoEntity.Joints
         /// <param name="connectionA">First connected entity.</param>
         /// <param name="connectionB">Second connected entity.</param>
         /// <param name="anchorLocation">Location of the socket.</param>
+        public BallSocketJoint(Entity connectionA, Entity connectionB)
+        {
+            ConnectionA = connectionA;
+            ConnectionB = connectionB;
+
+			OffsetA = ConnectionA.position;
+            OffsetB = ConnectionB.position;
+        }
+
+
+        /// <summary>
+        /// Constructs a spherical joint.
+        /// </summary>
+        /// <param name="connectionA">First connected entity.</param>
+        /// <param name="connectionB">Second connected entity.</param>
+        /// <param name="anchorLocation">Location of the socket.</param>
         public BallSocketJoint(Entity connectionA, Entity connectionB, Vector3 anchorLocation)
         {
             ConnectionA = connectionA;
