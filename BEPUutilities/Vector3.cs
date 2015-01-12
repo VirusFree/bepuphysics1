@@ -128,6 +128,25 @@ namespace BEPUutilities
             sum.Y = a.Y + b.Y;
             sum.Z = a.Z + b.Z;
         }
+
+        public static Vector3 operator +(Vector3 v, float f)
+        {
+            Vector3 toReturn;
+            toReturn.X = v.X + f;
+            toReturn.Y = v.Y + f;
+            toReturn.Z = v.Z + f;
+            return toReturn;
+        }
+
+        public static Vector3 operator +(float f, Vector3 v)
+        {
+            Vector3 toReturn;
+            toReturn.X = v.X + f;
+            toReturn.Y = v.Y + f;
+            toReturn.Z = v.Z + f;
+            return toReturn;
+        }
+
         /// <summary>
         /// Subtracts two vectors.
         /// </summary>
