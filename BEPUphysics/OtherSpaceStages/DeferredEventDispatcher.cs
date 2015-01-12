@@ -78,7 +78,8 @@ namespace BEPUphysics.OtherSpaceStages
         {
             for (int i = activeEventCreators.Count - 1; i >= 0; i--)
             {
-                activeEventCreators[i].DispatchEvents();
+                if (activeEventCreators[i] != null)
+                    activeEventCreators[i].DispatchEvents();
                 // Since it can attempt to remove or add any number of creators during the handler, all we can do is make sure 
                 // that our current index is still valid.  We may re-dispatch some event creators, but assuming they follow the
                 // proper pattern for deferred event creators, it will be okay.  The first execution cleans out all of the 
