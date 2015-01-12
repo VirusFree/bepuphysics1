@@ -15,41 +15,29 @@ namespace BEPUphysics.BroadPhaseEntries
     /// a complicated mesh to be repeated many times.  Since the hierarchy used to accelerate
     /// collisions is purely local, it may be marginally slower than an individual StaticMesh.
     ///</summary>
-    public class InstancedMesh : StaticCollidable
+    public class InstancedMesh : MobileCollidables.EntityCollidable
     {
+        internal Vector3 scale;
 
-        internal AffineTransform worldTransform;
-        ///<summary>
-        /// Gets or sets the world transform of the mesh.
-        ///</summary>
-        public AffineTransform WorldTransform
+        internal AffineTransform scaledWorldTransform = AffineTransform.Identity;
+
+        public override void UpdateWorldTransform(ref Vector3 position, ref Quaternion orientation)
         {
-            get
-            {
-                return worldTransform;
-            }
-            set
-            {
-                worldTransform = value;
-                Shape.ComputeBoundingBox(ref value, out boundingBox);
-            }
-        }
+            base.UpdateWorldTransform(ref position, ref orientation);
 
-        /// <summary>
-        /// Updates the bounding box to the current state of the entry.
-        /// </summary>
-        public override void UpdateBoundingBox()
-        {
-            Shape.ComputeBoundingBox(ref worldTransform, out boundingBox);
+            AffineTransform baseTransf;
+            AffineTransform.CreateFromRigidTransform(ref base.worldTransform, out baseTransf);
+            AffineTransform scaleTransf = AffineTransform.Identity;
+            Matrix3x3.CreateScale(ref scale, out scaleTransf.LinearTransform);
+            AffineTransform.Multiply(ref scaleTransf, ref baseTransf, out scaledWorldTransform);
         }
-
 
         ///<summary>
         /// Constructs a new InstancedMesh.
         ///</summary>
         ///<param name="meshShape">Shape to use for the instance.</param>
         public InstancedMesh(InstancedMeshShape meshShape)
-            : this(meshShape, AffineTransform.Identity)
+            : this(meshShape, Vector3.One)
         {
         }
 
@@ -58,13 +46,11 @@ namespace BEPUphysics.BroadPhaseEntries
         ///</summary>
         ///<param name="meshShape">Shape to use for the instance.</param>
         ///<param name="worldTransform">Transform to use for the instance.</param>
-        public InstancedMesh(InstancedMeshShape meshShape, AffineTransform worldTransform)
+        public InstancedMesh(InstancedMeshShape meshShape, Vector3 Scale)
+            : base(meshShape)
         {
-            this.worldTransform = worldTransform;
-            base.Shape = meshShape;
-            Events = new ContactEventManager<InstancedMesh>();
-
-
+            this.scale = Scale;
+            Events = new ContactEventManager<MobileCollidables.EntityCollidable>();
         }
 
         ///<summary>
@@ -111,43 +97,7 @@ namespace BEPUphysics.BroadPhaseEntries
                 improveBoundaryBehavior = value;
             }
         }
-
-
-        protected internal ContactEventManager<InstancedMesh> events;
-        ///<summary>
-        /// Gets the event manager of the mesh.
-        ///</summary>
-        public ContactEventManager<InstancedMesh> Events
-        {
-            get
-            {
-                return events;
-            }
-            set
-            {
-                if (value.Owner != null && //Can't use a manager which is owned by a different entity.
-                    value != events) //Stay quiet if for some reason the same event manager is being set.
-                    throw new ArgumentException("Event manager is already owned by a mesh; event managers cannot be shared.");
-                if (events != null)
-                    events.Owner = null;
-                events = value;
-                if (events != null)
-                    events.Owner = this;
-            }
-        }
-        protected internal override IContactEventTriggerer EventTriggerer
-        {
-            get { return events; }
-        }
-
-        protected override IDeferredEventCreator EventCreator
-        {
-            get
-            {
-                return events;
-            }
-        }
-
+        
 
         /// <summary>
         /// Tests a ray against the entry.
@@ -174,7 +124,7 @@ namespace BEPUphysics.BroadPhaseEntries
             //Put the ray into local space.
             Ray localRay;
             AffineTransform inverse;
-            AffineTransform.Invert(ref worldTransform, out inverse);
+            AffineTransform.Invert(ref scaledWorldTransform, out inverse);
             Matrix3x3.Transform(ref ray.Direction, ref inverse.LinearTransform, out localRay.Direction);
             AffineTransform.Transform(ref ray.Position, ref inverse, out localRay.Position);
 
@@ -202,7 +152,7 @@ namespace BEPUphysics.BroadPhaseEntries
         {
             hit = new RayHit();
             BoundingBox boundingBox;
-            castShape.GetSweptLocalBoundingBox(ref startingTransform, ref worldTransform, ref sweep, out boundingBox);
+            castShape.GetSweptLocalBoundingBox(ref startingTransform, ref scaledWorldTransform, ref sweep, out boundingBox);
             var tri = PhysicsThreadResources.GetTriangle();
             var hitElements = CommonResources.GetIntList();
             if (this.Shape.TriangleMesh.Tree.GetOverlaps(boundingBox, hitElements))
@@ -211,9 +161,9 @@ namespace BEPUphysics.BroadPhaseEntries
                 for (int i = 0; i < hitElements.Count; i++)
                 {
                     Shape.TriangleMesh.Data.GetTriangle(hitElements[i], out tri.vA, out tri.vB, out tri.vC);
-                    AffineTransform.Transform(ref tri.vA, ref worldTransform, out tri.vA);
-                    AffineTransform.Transform(ref tri.vB, ref worldTransform, out tri.vB);
-                    AffineTransform.Transform(ref tri.vC, ref worldTransform, out tri.vC);
+                    AffineTransform.Transform(ref tri.vA, ref scaledWorldTransform, out tri.vA);
+                    AffineTransform.Transform(ref tri.vB, ref scaledWorldTransform, out tri.vB);
+                    AffineTransform.Transform(ref tri.vC, ref scaledWorldTransform, out tri.vC);
                     Vector3 center;
                     Vector3.Add(ref tri.vA, ref tri.vB, out center);
                     Vector3.Add(ref center, ref tri.vC, out center);
@@ -247,6 +197,13 @@ namespace BEPUphysics.BroadPhaseEntries
             return false;
         }
 
+    
 
-    }
+
+        protected internal override void UpdateBoundingBoxInternal(float dt)
+        {
+            Shape.ComputeBoundingBox(ref scaledWorldTransform, out boundingBox);
+
+            ExpandBoundingBox(ref boundingBox, dt);
+        }    }
 }

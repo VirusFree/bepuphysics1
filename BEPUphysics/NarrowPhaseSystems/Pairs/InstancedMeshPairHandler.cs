@@ -37,7 +37,7 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
         }
         public override Entities.Entity EntityB
         {
-            get { return null; }
+            get { return instancedMesh.entity; }
         }
         /// <summary>
         /// Gets the contact constraint used by the pair handler.
@@ -84,7 +84,7 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
             broadPhaseOverlap.entryA = convex;
             broadPhaseOverlap.entryB = instancedMesh;
 
-            UpdateMaterialProperties(convex.entity != null ? convex.entity.material : null, instancedMesh.material);
+            UpdateMaterialProperties(convex.entity != null ? convex.entity.material : null, instancedMesh.entity == null ? null : instancedMesh.entity.material);
 
 
             base.Initialize(entryA, entryB);
@@ -139,9 +139,9 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
                         MeshBoundingBoxTreeData data = instancedMesh.Shape.TriangleMesh.Data;
                         int triangleIndex = MeshManifold.overlappedTriangles.Elements[i];
                         data.GetTriangle(triangleIndex, out triangle.vA, out triangle.vB, out triangle.vC);
-                        AffineTransform.Transform(ref triangle.vA, ref instancedMesh.worldTransform, out triangle.vA);
-                        AffineTransform.Transform(ref triangle.vB, ref instancedMesh.worldTransform, out triangle.vB);
-                        AffineTransform.Transform(ref triangle.vC, ref instancedMesh.worldTransform, out triangle.vC);
+                        AffineTransform.Transform(ref triangle.vA, ref instancedMesh.scaledWorldTransform, out triangle.vA);
+                        AffineTransform.Transform(ref triangle.vB, ref instancedMesh.scaledWorldTransform, out triangle.vB);
+                        AffineTransform.Transform(ref triangle.vC, ref instancedMesh.scaledWorldTransform, out triangle.vC);
                         //Put the triangle into 'localish' space of the convex.
                         Vector3.Subtract(ref triangle.vA, ref convex.worldTransform.Position, out triangle.vA);
                         Vector3.Subtract(ref triangle.vB, ref convex.worldTransform.Position, out triangle.vB);

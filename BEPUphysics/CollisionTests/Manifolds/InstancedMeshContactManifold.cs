@@ -31,12 +31,12 @@ namespace BEPUphysics.CollisionTests.Manifolds
         protected internal override int FindOverlappingTriangles(float dt)
         {
             BoundingBox boundingBox;
-            convex.Shape.GetLocalBoundingBox(ref convex.worldTransform, ref mesh.worldTransform, out boundingBox);
+            convex.Shape.GetLocalBoundingBox(ref convex.worldTransform, ref mesh.scaledWorldTransform, out boundingBox);
             if (convex.entity != null)
             {
                 Vector3 transformedVelocity;
                 Matrix3x3 inverse;
-                Matrix3x3.Invert(ref mesh.worldTransform.LinearTransform, out inverse);
+                Matrix3x3.Invert(ref mesh.scaledWorldTransform.LinearTransform, out inverse);
                 Matrix3x3.Transform(ref convex.entity.linearVelocity, ref inverse, out transformedVelocity);
                 Vector3.Multiply(ref transformedVelocity, dt, out transformedVelocity);
 
@@ -68,7 +68,7 @@ namespace BEPUphysics.CollisionTests.Manifolds
         protected override void PrecomputeTriangleTransform(ref AffineTransform convexInverseWorldTransform, out AffineTransform fromMeshLocalToConvexLocal)
         {
             //InstancedMeshShapes don't have a shape-level transform. The instance transform is all there is.
-            AffineTransform.Multiply(ref mesh.worldTransform, ref convexInverseWorldTransform, out fromMeshLocalToConvexLocal);
+            AffineTransform.Multiply(ref mesh.scaledWorldTransform, ref convexInverseWorldTransform, out fromMeshLocalToConvexLocal);
         }
 
         protected override bool ConfigureLocalTriangle(int i, TriangleShape localTriangleShape, out TriangleIndices indices)

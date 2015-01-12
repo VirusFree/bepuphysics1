@@ -21,11 +21,11 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
         }
         public override Entities.Entity EntityB
         {
-            get { return null; }
+            get { return mesh.entity; }
         }
         protected override Materials.Material MaterialB
         {
-            get { return mesh.material; }
+            get { return mesh.entity == null ? null : mesh.entity.material; }
         }
 
         protected override TriangleCollidable GetOpposingCollidable(int index)
@@ -34,9 +34,9 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
             var toReturn = PhysicsResources.GetTriangleCollidable();
             var shape = toReturn.Shape;
             mesh.Shape.TriangleMesh.Data.GetTriangle(index, out shape.vA, out shape.vB, out shape.vC);
-            Matrix3x3.Transform(ref shape.vA, ref mesh.worldTransform.LinearTransform, out shape.vA);
-            Matrix3x3.Transform(ref shape.vB, ref mesh.worldTransform.LinearTransform, out shape.vB);
-            Matrix3x3.Transform(ref shape.vC, ref mesh.worldTransform.LinearTransform, out shape.vC);
+            Matrix3x3.Transform(ref shape.vA, ref mesh.scaledWorldTransform.LinearTransform, out shape.vA);
+            Matrix3x3.Transform(ref shape.vB, ref mesh.scaledWorldTransform.LinearTransform, out shape.vB);
+            Matrix3x3.Transform(ref shape.vC, ref mesh.scaledWorldTransform.LinearTransform, out shape.vC);
             Vector3 center;
             Vector3.Add(ref shape.vA, ref shape.vB, out center);
             Vector3.Add(ref center, ref shape.vC, out center);
@@ -45,7 +45,7 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
             Vector3.Subtract(ref shape.vB, ref center, out shape.vB);
             Vector3.Subtract(ref shape.vC, ref center, out shape.vC);
 
-            Vector3.Add(ref center, ref mesh.worldTransform.Translation, out center);
+            Vector3.Add(ref center, ref mesh.scaledWorldTransform.Translation, out center);
             //The bounding box doesn't update by itself.
             toReturn.worldTransform.Position = center;
             toReturn.worldTransform.Orientation = Quaternion.Identity;
@@ -109,7 +109,7 @@ namespace BEPUphysics.NarrowPhaseSystems.Pairs
 
             Vector3 sweep;
             Vector3.Multiply(ref mobileMesh.entity.linearVelocity, dt, out sweep);
-            mobileMesh.Shape.GetSweptLocalBoundingBox(ref mobileMesh.worldTransform, ref mesh.worldTransform, ref sweep, out localBoundingBox);
+            mobileMesh.Shape.GetSweptLocalBoundingBox(ref mobileMesh.worldTransform, ref mesh.scaledWorldTransform, ref sweep, out localBoundingBox);
             mesh.Shape.TriangleMesh.Tree.GetOverlaps(localBoundingBox, overlappedElements);
             for (int i = 0; i < overlappedElements.Count; i++)
             {

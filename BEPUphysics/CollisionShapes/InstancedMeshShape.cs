@@ -9,7 +9,7 @@ namespace BEPUphysics.CollisionShapes
     /// This contains a hierarchy and all the other heavy data needed
     /// by an InstancedMesh.
     ///</summary>
-    public class InstancedMeshShape : CollisionShape
+    public class InstancedMeshShape : EntityShape
     {
         TriangleMesh triangleMesh;
         ///<summary>
@@ -86,6 +86,18 @@ namespace BEPUphysics.CollisionShapes
             boundingBox.Max.X = transform.Translation.X + maxX;
             boundingBox.Max.Y = transform.Translation.Y + maxY;
             boundingBox.Max.Z = transform.Translation.Z + maxZ;
+        }
+
+        public override BroadPhaseEntries.MobileCollidables.EntityCollidable GetCollidableInstance()
+        {
+            return new BEPUphysics.BroadPhaseEntries.InstancedMesh(this);
+        }
+
+        public override void GetBoundingBox(ref RigidTransform transform, out BoundingBox boundingBox)
+        {
+            AffineTransform affineTransform; 
+            AffineTransform.CreateFromRigidTransform(ref transform,out affineTransform);
+            ComputeBoundingBox(ref affineTransform, out boundingBox);
         }
     }
 }
