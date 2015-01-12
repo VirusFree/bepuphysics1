@@ -35,6 +35,31 @@ namespace BEPUphysics.Constraints.SolverGroups
             Add(Motor);
         }
 
+        /// <summary>
+        /// Constructs a new constraint which restricts three degrees of linear freedom and two degrees of angular freedom between two entities.
+        /// </summary>
+        /// <param name="connectionA">First entity of the constraint pair.</param>
+        /// <param name="connectionB">Second entity of the constraint pair.</param>
+        /// <param name="anchor">Point around which both entities rotate.</param>
+        /// <param name="freeAxis">Axis around which the hinge can rotate.</param>
+        public RevoluteJoint(Entity connectionA, Entity connectionB, Vector3 freeAxis)
+        {
+            if (connectionA == null)
+                connectionA = TwoEntityConstraint.WorldEntity;
+            if (connectionB == null)
+                connectionB = TwoEntityConstraint.WorldEntity;
+            BallSocketJoint = new BallSocketJoint(connectionA, connectionB);
+            AngularJoint = new RevoluteAngularJoint(connectionA, connectionB, freeAxis);
+            Limit = new RevoluteLimit(connectionA, connectionB);
+            Motor = new RevoluteMotor(connectionA, connectionB, freeAxis);
+            Limit.IsActive = false;
+            Motor.IsActive = false;
+
+            Add(BallSocketJoint);
+            Add(AngularJoint);
+            Add(Limit);
+            Add(Motor);
+        }
 
         /// <summary>
         /// Constructs a new constraint which restricts three degrees of linear freedom and two degrees of angular freedom between two entities.
@@ -49,7 +74,7 @@ namespace BEPUphysics.Constraints.SolverGroups
                 connectionA = TwoEntityConstraint.WorldEntity;
             if (connectionB == null)
                 connectionB = TwoEntityConstraint.WorldEntity;
-            BallSocketJoint = new BallSocketJoint(connectionA, connectionB, anchor);
+            BallSocketJoint = new BallSocketJoint(connectionA, connectionB);
             AngularJoint = new RevoluteAngularJoint(connectionA, connectionB, freeAxis);
             Limit = new RevoluteLimit(connectionA, connectionB);
             Motor = new RevoluteMotor(connectionA, connectionB, freeAxis);
@@ -93,6 +118,16 @@ namespace BEPUphysics.Constraints.SolverGroups
             Add(Limit);
             Add(Motor);
         }
+
+
+        /// <summary>
+        /// Gets the total impulse applied by this constraint.
+        /// </summary>
+        public float TotalImpulse
+        {
+            get { return AngularJoint.TotalImpulse.Length() + BallSocketJoint.TotalImpulse.Length(); }
+        }
+
 
         /// <summary>
         /// Gets the angular joint which removes two degrees of freedom.
