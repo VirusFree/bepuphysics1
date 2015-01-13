@@ -50,7 +50,7 @@ namespace BEPUphysics.Character
             get { return standingHeight; }
             set
             {
-                if (value <= 0 || value < CrouchingHeight)
+                if (value < 0)
                     throw new ArgumentException("Standing height must be positive and greater than the crouching height.");
                 standingHeight = value;
                 UpdateQueryShapes();

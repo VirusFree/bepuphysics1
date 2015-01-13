@@ -336,7 +336,7 @@ namespace BEPUphysics.Character
             get { return Body.CollisionInformation.Shape.Radius; }
             set
             {
-                if (value <= 0)
+                if (value < 0)
                     throw new ArgumentException("Radius must be positive.");
                 Body.CollisionInformation.Shape.Radius = value;
                 //Tell the query manager to update its representation.
