@@ -224,14 +224,14 @@ namespace BEPUphysics.BroadPhaseEntries.MobileCollidables
                     //velocity is low, but then a collision with a high velocity object sends
                     //it way out of its bounding box.  By taking into account high velocity objects
                     //in danger of hitting us and expanding our own bounding box by their speed,
-                    //we stand a much better chance of not missing secondary collisions.
+                    //we stand a much better chance of not missing secondary collisions.                    
                     foreach (var e in OverlappedEntities)
-                    {
-
-                        float velocity = e.linearVelocity.LengthSquared();
-                        if (velocity > expansion)
-                            expansion = velocity;
-                    }
+                        if (e != null)
+                        {
+                            float velocity = e.linearVelocity.LengthSquared();
+                            if (velocity > expansion)
+                                expansion = velocity;
+                        }
                     expansion = (float)Math.Sqrt(expansion) * dt;
 
 
