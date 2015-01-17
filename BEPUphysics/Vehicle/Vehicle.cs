@@ -91,7 +91,7 @@ namespace BEPUphysics.Vehicle
             get { return new ReadOnlyList<Wheel>(wheels); }
         }
 
-
+        bool removeBodyFromSpace = false;
         /// <summary>
         /// Sets up the vehicle's information when being added to the space.
         /// Called automatically when the space adds the vehicle.
@@ -99,11 +99,15 @@ namespace BEPUphysics.Vehicle
         /// <param name="newSpace">New owning space.</param>
         public override void OnAdditionToSpace(Space newSpace)
         {
-            newSpace.Add(body);
-            foreach (Wheel wheel in Wheels)
+            //add body of not added already
+            if (body.Space == null)
             {
-                wheel.OnAdditionToSpace(newSpace);
+                newSpace.Add(body);
+                removeBodyFromSpace = true;
             }
+            //add wheels
+            foreach (Wheel wheel in Wheels)
+                wheel.OnAdditionToSpace(newSpace);
         }
 
         /// <summary>
@@ -113,10 +117,12 @@ namespace BEPUphysics.Vehicle
         public override void OnRemovalFromSpace(Space oldSpace)
         {
             foreach (Wheel wheel in Wheels)
-            {
                 wheel.OnRemovalFromSpace(oldSpace);
-            }
-            oldSpace.Remove(Body);
+
+            if (removeBodyFromSpace)
+                oldSpace.Remove(Body);
+
+            removeBodyFromSpace = false;
         }
 
         /// <summary>

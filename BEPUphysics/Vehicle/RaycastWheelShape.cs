@@ -164,6 +164,8 @@ namespace BEPUphysics.Vehicle
         /// </summary>
         protected internal override void Initialize()
         {
+            if (wheel == null)
+                return;
             //Setup the dimensions of the detector.
             Vector3 startpoint = wheel.suspension.localAttachmentPoint;
             Vector3 endpoint = startpoint + wheel.suspension.localDirection * wheel.suspension.restLength;
