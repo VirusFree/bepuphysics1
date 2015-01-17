@@ -60,6 +60,9 @@ namespace BEPUphysics.Vehicle
         //Inverse effective mass matrix
         private float velocityToImpulse;
 
+
+        public float RollInfluence = 1; //0-> no rolling, 1->physical roll
+
         /// <summary>
         /// Constructs a new sliding friction object for a wheel.
         /// </summary>
@@ -252,6 +255,12 @@ namespace BEPUphysics.Vehicle
             angularAX = (wheel.ra.Y * linearAZ) - (wheel.ra.Z * linearAY);
             angularAY = (wheel.ra.Z * linearAX) - (wheel.ra.X * linearAZ);
             angularAZ = (wheel.ra.X * linearAY) - (wheel.ra.Y * linearAX);
+
+            //adjust angular influence based on bodys up vector
+            var axisInfluence = Vector3.Abs(wheel.Vehicle.Body.WorldTransform.Up);
+            angularAX *= (1f - axisInfluence.X) * RollInfluence + axisInfluence.X;
+            angularAY *= (1f - axisInfluence.Y) * RollInfluence + axisInfluence.Y;
+            angularAZ *= (1f - axisInfluence.Z) * RollInfluence + axisInfluence.Z;
 
             //Angular B = N x Rb
             angularBX = (linearAY * wheel.rb.Z) - (linearAZ * wheel.rb.Y);
