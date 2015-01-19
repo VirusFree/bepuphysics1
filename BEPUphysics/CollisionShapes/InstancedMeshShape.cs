@@ -38,6 +38,24 @@ namespace BEPUphysics.CollisionShapes
         public InstancedMeshShape(Vector3[] vertices, int[] indices)
         {
             TriangleMesh = new TriangleMesh(new StaticMeshData(vertices, indices));
+
+            var bbox = TriangleMesh.Tree.BoundingBox;
+            var rad = bbox.Max - bbox.Min;
+            var width = rad.X;
+            var height = rad.Y;
+            var length = rad.Z;
+
+            Volume = width * height * length;
+
+            float widthSquared = width * width;
+            float heightSquared = height * height;
+            float lengthSquared = length * length;
+            const float inv12 = 1 / 12f;
+
+            volumeDistribution = new Matrix3x3();
+            volumeDistribution.M11 = (heightSquared + lengthSquared) * inv12;
+            volumeDistribution.M22 = (widthSquared + lengthSquared) * inv12;
+            volumeDistribution.M33 = (widthSquared + heightSquared) * inv12;
         }
 
 
