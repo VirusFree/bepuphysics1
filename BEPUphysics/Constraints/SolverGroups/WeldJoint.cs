@@ -75,6 +75,12 @@ namespace BEPUphysics.Constraints.SolverGroups
         /// </summary>
         public NoRotationJoint NoRotationJoint { get; private set; }
 
-        
+        /// <summary>
+        /// Gets the total impulse applied by this constraint.
+        /// </summary>
+        public Vector3 TotalImpulse
+        {
+            get { return BallSocketJoint.TotalImpulse + NoRotationJoint.TotalImpulse; }
+        }
     }
 }
