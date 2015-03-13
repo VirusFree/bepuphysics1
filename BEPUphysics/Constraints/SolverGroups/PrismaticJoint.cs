@@ -79,5 +79,13 @@ namespace BEPUphysics.Constraints.SolverGroups
         /// Gets the line joint that restricts two linear degrees of freedom.
         /// </summary>
         public PointOnLineJoint PointOnLineJoint { get; private set; }
+
+        /// <summary>
+        /// Gets the total impulse applied by this constraint.
+        /// </summary>
+        public float TotalImpulse
+        {
+            get { return AngularJoint.TotalImpulse.Length() + PointOnLineJoint.TotalImpulse.Length(); }
+        }
     }
 }
