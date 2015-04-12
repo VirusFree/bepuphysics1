@@ -244,6 +244,7 @@
     <Compile Include="Constraints\Collision\NonConvexContactManifoldConstraint.cs" />
     <Compile Include="Constraints\Collision\SlidingFrictionTwoAxis.cs" />
     <Compile Include="Constraints\Collision\TwistFrictionConstraint.cs" />
+    <Compile Include="Constraints\SolverGroups\SphericalJoint.cs" />
     <Compile Include="Constraints\SolverUpdateable.cs" />
     <Compile Include="Constraints\IJacobians.cs" />
     <Compile Include="Constraints\ISolverSettings.cs" />
