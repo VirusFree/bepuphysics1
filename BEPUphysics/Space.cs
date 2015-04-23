@@ -540,12 +540,14 @@ namespace BEPUphysics
         /// <param name="dt">Elapsed time from the previous frame.</param>
         public void Update(float dt)
         {
+            TimeStepSettings.ConsumedTime = 0;
             TimeStepSettings.AccumulatedTime += dt;
             for (int i = 0; i < TimeStepSettings.MaximumTimeStepsPerFrame; i++)
             {
                 if (TimeStepSettings.AccumulatedTime >= TimeStepSettings.TimeStepDuration)
                 {
                     TimeStepSettings.AccumulatedTime -= TimeStepSettings.TimeStepDuration;
+                    TimeStepSettings.ConsumedTime += TimeStepSettings.TimeStepDuration;
                     DoTimeStep();
                 }
                 else

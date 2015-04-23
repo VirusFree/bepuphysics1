@@ -22,5 +22,10 @@
         /// Amount of time accumulated by previous calls to Space.Update(float) that has not yet been simulated.
         /// </summary>
         public float AccumulatedTime;
+
+        /// <summary>
+        /// Amount of time consumed by previous calls to Space.Update(float) that has been simulated.
+        /// </summary>
+        public float ConsumedTime;
     }
 }
