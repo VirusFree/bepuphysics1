@@ -163,11 +163,34 @@ namespace BEPUphysics.CollisionShapes
         {
             this.solidity = solidity;
             var data = new TransformableMeshData(vertices, indices, localTransform);
+            triangleMesh = new TriangleMesh(data);
+
+#if false
             var shapeDistributionInformation = ComputeVolumeDistribution(data);
             data.worldTransform.Translation -= shapeDistributionInformation.Center;
             center = shapeDistributionInformation.Center;
+#else
+            center = new Vector3();
 
-            triangleMesh = new TriangleMesh(data);
+            var shapeDistributionInformation = new ShapeDistributionInformation();
+            BoundingBox bbox;
+            ComputeBoundingBox(ref localTransform, out bbox);
+            var rad = bbox.Max - bbox.Min;
+            var width = rad.X;
+            var height = rad.Y;
+            var length = rad.Z;
+
+            shapeDistributionInformation.Volume = width * height * length;
+
+            float widthSquared = width * width;
+            float heightSquared = height * height;
+            float lengthSquared = length * length;
+            const float inv12 = 1 / 12f;
+
+            shapeDistributionInformation.VolumeDistribution.M11 = (heightSquared + lengthSquared) * inv12;
+            shapeDistributionInformation.VolumeDistribution.M22 = (widthSquared + lengthSquared) * inv12;
+            shapeDistributionInformation.VolumeDistribution.M33 = (widthSquared + heightSquared) * inv12;
+#endif       
 
             UpdateEntityShapeVolume(new EntityShapeVolumeDescription { Volume = shapeDistributionInformation.Volume, VolumeDistribution = shapeDistributionInformation.VolumeDistribution });
 
@@ -415,6 +438,7 @@ namespace BEPUphysics.CollisionShapes
         /// <returns>Computed center, volume, and volume distribution.</returns>
         private ShapeDistributionInformation ComputeVolumeDistribution(TransformableMeshData data)
         {
+            /*
             //Compute the surface vertices of the shape.
             ShapeDistributionInformation shapeInformation;
             if (solidity == MobileMeshSolidity.Solid)
@@ -479,9 +503,55 @@ namespace BEPUphysics.CollisionShapes
             Matrix3x3.Subtract(ref shapeInformation.VolumeDistribution, ref additionalInertia, out shapeInformation.VolumeDistribution);
 
             shapeInformation.Volume = 0;
+            */
+            throw new NotSupportedException();
+        }
 
 
-            return shapeInformation;
+        ///<summary>
+        /// Computes the bounding box of the transformed mesh shape.
+        ///</summary>
+        ///<param name="transform">Transform to apply to the shape during the bounding box calculation.</param>
+        ///<param name="boundingBox">Bounding box containing the transformed mesh shape.</param>
+        public void ComputeBoundingBox(ref AffineTransform transform, out BoundingBox boundingBox)
+        {
+#if !WINDOWS
+            boundingBox = new BoundingBox();
+#endif
+            float minX = float.MaxValue;
+            float minY = float.MaxValue;
+            float minZ = float.MaxValue;
+
+            float maxX = -float.MaxValue;
+            float maxY = -float.MaxValue;
+            float maxZ = -float.MaxValue;
+            for (int i = 0; i < triangleMesh.Data.vertices.Length; i++)
+            {
+                Vector3 vertex;
+                triangleMesh.Data.GetVertexPosition(i, out vertex);
+                Matrix3x3.Transform(ref vertex, ref transform.LinearTransform, out vertex);
+                if (vertex.X < minX)
+                    minX = vertex.X;
+                if (vertex.X > maxX)
+                    maxX = vertex.X;
+
+                if (vertex.Y < minY)
+                    minY = vertex.Y;
+                if (vertex.Y > maxY)
+                    maxY = vertex.Y;
+
+                if (vertex.Z < minZ)
+                    minZ = vertex.Z;
+                if (vertex.Z > maxZ)
+                    maxZ = vertex.Z;
+            }
+            boundingBox.Min.X = transform.Translation.X + minX;
+            boundingBox.Min.Y = transform.Translation.Y + minY;
+            boundingBox.Min.Z = transform.Translation.Z + minZ;
+
+            boundingBox.Max.X = transform.Translation.X + maxX;
+            boundingBox.Max.Y = transform.Translation.Y + maxY;
+            boundingBox.Max.Z = transform.Translation.Z + maxZ;
         }
 
 
