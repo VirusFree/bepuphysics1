@@ -78,7 +78,7 @@ namespace BEPUphysics.Materials
         {
             properties = new InteractionProperties
             {
-                Bounciness = a.bounciness * b.bounciness,
+                Bounciness = Math.Max(a.bounciness , b.bounciness),
                 KineticFriction = a.kineticFriction * b.kineticFriction,
                 StaticFriction = a.staticFriction * b.staticFriction
             };
