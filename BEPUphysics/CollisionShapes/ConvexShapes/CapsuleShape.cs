@@ -10,6 +10,9 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
     ///</summary>
     public class CapsuleShape : ConvexShape
     {
+        Axis _Axis = Axis.Y;
+        public Axis Axis { get { return _Axis; } }
+
         float halfLength;
         ///<summary>
         /// Gets or sets the length of the capsule's inner line segment.
@@ -39,11 +42,12 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
         ///</summary>
         ///<param name="length">Length of the capsule's inner line segment.</param>
         ///<param name="radius">Radius to expand the line segment width.</param>
-        public CapsuleShape(float length, float radius)
+        public CapsuleShape(float length, float radius, Axis Axis = Axis.Y)
         {
+            this._Axis = Axis;
             halfLength = length * 0.5f;
 
-            UpdateConvexShapeInfo(ComputeDescription(length, radius));
+            UpdateConvexShapeInfo(ComputeDescription(length, radius, Axis));
         }
 
         ///<summary>
@@ -51,8 +55,9 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
         ///</summary>
         ///<param name="length">Length of the capsule's inner line segment.</param>
         /// <param name="description">Cached information about the shape. Assumed to be correct; no extra processing or validation is performed.</param>
-        public CapsuleShape(float length, ConvexShapeDescription description)
+        public CapsuleShape(float length, ConvexShapeDescription description, Axis Axis = Axis.Y)
         {
+            this._Axis = Axis;
             halfLength = length * 0.5f;
 
             UpdateConvexShapeInfo(description);
@@ -62,7 +67,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
 
         protected override void OnShapeChanged()
         {
-            UpdateConvexShapeInfo(ComputeDescription(halfLength * 2, Radius));
+            UpdateConvexShapeInfo(ComputeDescription(halfLength * 2, Radius, _Axis));
             base.OnShapeChanged();
         }
 
@@ -73,7 +78,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
         ///<param name="length">Length of the capsule's inner line segment.</param>
         ///<param name="radius">Radius to expand the line segment width.</param>
         /// <returns>Description required to define a convex shape.</returns>
-        public static ConvexShapeDescription ComputeDescription(float length, float radius)
+        public static ConvexShapeDescription ComputeDescription(float length, float radius, Axis axis)
         {
             ConvexShapeDescription description;
             description.EntityShapeVolume.Volume = (float)(Math.PI * radius * radius * length + 1.333333 * Math.PI * radius * radius * radius);
@@ -81,9 +86,24 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
             description.EntityShapeVolume.VolumeDistribution = new Matrix3x3();
             float effectiveLength = length + radius / 2; //This is a cylindrical inertia tensor. Approximate.
             float diagValue = (.0833333333f * effectiveLength * effectiveLength + .25f * radius * radius);
-            description.EntityShapeVolume.VolumeDistribution.M11 = diagValue;
-            description.EntityShapeVolume.VolumeDistribution.M22 = .5f * radius * radius;
-            description.EntityShapeVolume.VolumeDistribution.M33 = diagValue;
+            if (axis == Axis.X)
+            {
+                description.EntityShapeVolume.VolumeDistribution.M11 = .5f * radius * radius;
+                description.EntityShapeVolume.VolumeDistribution.M22 = diagValue;
+                description.EntityShapeVolume.VolumeDistribution.M33 = diagValue;
+            }
+            else if (axis == Axis.Y)
+            {
+                description.EntityShapeVolume.VolumeDistribution.M11 = diagValue;
+                description.EntityShapeVolume.VolumeDistribution.M22 = .5f * radius * radius;
+                description.EntityShapeVolume.VolumeDistribution.M33 = diagValue;
+            }
+            else if (axis == Axis.Z)
+            {
+                description.EntityShapeVolume.VolumeDistribution.M11 = diagValue;
+                description.EntityShapeVolume.VolumeDistribution.M22 = diagValue;
+                description.EntityShapeVolume.VolumeDistribution.M33 = .5f * radius * radius;
+            }
 
             description.MaximumRadius = length * 0.5f + radius;
             description.MinimumRadius = radius;
@@ -98,7 +118,14 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
             boundingBox = new BoundingBox();
 #endif
             Vector3 upExtreme;
-            Quaternion.TransformY(halfLength, ref shapeTransform.Orientation, out upExtreme);
+            if (_Axis == Axis.X)
+                Quaternion.TransformX(halfLength, ref shapeTransform.Orientation, out upExtreme);
+            else if (_Axis == Axis.Y)
+                Quaternion.TransformY(halfLength, ref shapeTransform.Orientation, out upExtreme);
+            else if (_Axis == Axis.Z)
+                Quaternion.TransformZ(halfLength, ref shapeTransform.Orientation, out upExtreme);
+            else
+                upExtreme = Vector3.Zero;
 
             if (upExtreme.X > 0)
             {
@@ -145,10 +172,27 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
         ///<param name="extremePoint">Extreme point on the shape.</param>
         public override void GetLocalExtremePointWithoutMargin(ref Vector3 direction, out Vector3 extremePoint)
         {
-            if (direction.Y > 0)
-                extremePoint = new Vector3(0, halfLength, 0);
-            else if (direction.Y < 0)
-                extremePoint = new Vector3(0, -halfLength, 0);
+            if (_Axis == Axis.X)
+            {
+                if (direction.X != 0)
+                    extremePoint = new Vector3(Math.Sign(direction.X) * halfLength, 0, 0);
+                else
+                    extremePoint = Toolbox.ZeroVector;
+            }
+            else if (_Axis == Axis.Y)
+            {
+                if (direction.Y != 0)
+                    extremePoint = new Vector3(0, Math.Sign(direction.Y) * halfLength, 0);
+                else
+                    extremePoint = Toolbox.ZeroVector;
+            }
+            else if (_Axis == Axis.Z)
+            {
+                if (direction.Z != 0)
+                    extremePoint = new Vector3(0, 0, Math.Sign(direction.Z) * halfLength);
+                else
+                    extremePoint = Toolbox.ZeroVector;
+            }
             else
                 extremePoint = Toolbox.ZeroVector;
         }
@@ -183,8 +227,39 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
             Quaternion.Transform(ref localRay.Position, ref conjugate, out localRay.Position);
             Quaternion.Transform(ref ray.Direction, ref conjugate, out localRay.Direction);
 
+            float posGrow = 0;
+            float posSide1 = 0;
+            float posSide2 = 0;
+            float dirSide1 = 0;
+            float dirSide2 = 0;
+
+            if (_Axis == Axis.X)
+            {
+                posGrow = localRay.Position.X;
+                posSide1 = localRay.Position.Y;
+                posSide2 = localRay.Position.Z;
+                dirSide1 = localRay.Direction.Y;
+                dirSide2 = localRay.Direction.Z;
+            }
+            else if (_Axis == Axis.Y)
+            {
+                posGrow = localRay.Position.Y;
+                posSide1 = localRay.Position.X;
+                posSide2 = localRay.Position.Z;
+                dirSide1 = localRay.Direction.X;
+                dirSide2 = localRay.Direction.Z;
+            }
+            else if (_Axis == Axis.Z)
+            {
+                posGrow = localRay.Position.Z;
+                posSide1 = localRay.Position.X;
+                posSide2 = localRay.Position.Y;
+                dirSide1 = localRay.Direction.X;
+                dirSide2 = localRay.Direction.Y;
+            }
+
             //Check for containment in the cylindrical portion of the capsule.
-            if (localRay.Position.Y >= -halfLength && localRay.Position.Y <= halfLength && localRay.Position.X * localRay.Position.X + localRay.Position.Z * localRay.Position.Z <= collisionMargin * collisionMargin)
+            if (posGrow >= -halfLength && posGrow <= halfLength && posSide1 * posSide1 + posSide2 * posSide2 <= collisionMargin * collisionMargin)
             {
                 //It's inside!
                 hit.T = 0;
@@ -204,7 +279,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
             //Project the ray direction onto the plane where the cylinder is a circle.
             //The projected ray is then tested against the circle to compute the time of impact.
             //That time of impact is used to compute the 3d hit location.
-            Vector2 planeDirection = new Vector2(localRay.Direction.X, localRay.Direction.Z);
+            Vector2 planeDirection = new Vector2(dirSide1, dirSide2);
             float planeDirectionLengthSquared = planeDirection.LengthSquared();
 
             if (planeDirectionLengthSquared < Toolbox.Epsilon)
@@ -212,9 +287,9 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
                 //The ray is nearly parallel with the axis.
                 //Skip the cylinder-sides test.  We're either inside the cylinder and won't hit the sides, or we're outside
                 //and won't hit the sides.  
-                if (localRay.Position.Y > halfLength)
+                if (posGrow > halfLength)
                     goto upperSphereTest;
-                if (localRay.Position.Y < -halfLength)
+                if (posGrow < -halfLength)
                     goto lowerSphereTest;
 
 
@@ -222,7 +297,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
                 return false;
 
             }
-            Vector2 planeOrigin = new Vector2(localRay.Position.X, localRay.Position.Z);
+            Vector2 planeOrigin = new Vector2(posSide1, posSide2);
             float dot;
             Vector2.Dot(ref planeDirection, ref planeOrigin, out dot);
             float closestToCenterT = -dot / planeDirectionLengthSquared;
@@ -251,11 +326,34 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
             Vector3.Multiply(ref localRay.Direction, hit.T, out hit.Location);
             Vector3.Add(ref hit.Location, ref localRay.Position, out hit.Location);
 
+            float hitGrow = 0;
+            float hitSide1 = 0;
+            float hitSide2 = 0;
+
+            if (_Axis == Axis.X)
+            {
+                hitGrow = hit.Location.X;
+                hitSide1 = hit.Location.Y;
+                hitSide2 = hit.Location.Z;
+            }
+            else if (_Axis == Axis.Y)
+            {
+                hitGrow = hit.Location.Y;
+                hitSide1 = hit.Location.X;
+                hitSide2 = hit.Location.Z;
+            }
+            else if (_Axis == Axis.Z)
+            {
+                hitGrow = hit.Location.Z;
+                hitSide1 = hit.Location.X;
+                hitSide2 = hit.Location.Y;
+            }
+
             //Is it intersecting the cylindrical portion of the capsule?
-            if (hit.Location.Y <= halfLength && hit.Location.Y >= -halfLength && hit.T < maximumLength)
+            if (hitGrow <= halfLength && hitGrow >= -halfLength && hit.T < maximumLength)
             {
                 //Yup!
-                hit.Normal = new Vector3(hit.Location.X, 0, hit.Location.Z);
+                hit.Normal = new Vector3(hitSide1, 0, hitSide2);
                 float normalLengthSquared = hit.Normal.LengthSquared();
                 if (normalLengthSquared > 1e-9f)
                     Vector3.Divide(ref hit.Normal, (float)Math.Sqrt(normalLengthSquared), out hit.Normal);
@@ -267,7 +365,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
                 return true;
             }
 
-            if (hit.Location.Y < halfLength)
+            if (hitGrow < halfLength)
                 goto lowerSphereTest;
         upperSphereTest:
             //Nope! It may be intersecting the ends of the capsule though.

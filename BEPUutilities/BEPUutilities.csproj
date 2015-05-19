@@ -107,6 +107,7 @@
     <Compile Include="DataStructures\QuickList.cs" />
     <Compile Include="DataStructures\QuickQueue.cs" />
     <Compile Include="DataStructures\QuickSet.cs" />
+    <Compile Include="Axis.cs" />
     <Compile Include="Int2.cs" />
     <Compile Include="PermutationMapper.cs" />
     <Compile Include="ResourceManagement\BufferPool.cs" />
