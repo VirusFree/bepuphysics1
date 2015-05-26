@@ -160,30 +160,33 @@ namespace BEPUphysics.PositionUpdating
         ///<param name="previousMode">Previous state the updateable was in.</param>
         public void UpdateableModeChanged(ICCDPositionUpdateable updateable, PositionUpdateMode previousMode)
         {
-            switch (previousMode)
+            lock (this)
             {
-                case PositionUpdateMode.Discrete:
-                    discreteUpdateables.Remove(updateable);
-                    break;
-                case PositionUpdateMode.Passive:
-                    passiveUpdateables.Remove(updateable);
-                    break;
-                case PositionUpdateMode.Continuous:
-                    continuousUpdateables.Remove(updateable);
-                    break;
-            }
+                switch (previousMode)
+                {
+                    case PositionUpdateMode.Discrete:
+                        discreteUpdateables.Remove(updateable);
+                        break;
+                    case PositionUpdateMode.Passive:
+                        passiveUpdateables.Remove(updateable);
+                        break;
+                    case PositionUpdateMode.Continuous:
+                        continuousUpdateables.Remove(updateable);
+                        break;
+                }
 
-            switch (updateable.PositionUpdateMode)
-            {
-                case PositionUpdateMode.Discrete:
-                    discreteUpdateables.Add(updateable);
-                    break;
-                case PositionUpdateMode.Passive:
-                    passiveUpdateables.Add(updateable);
-                    break;
-                case PositionUpdateMode.Continuous:
-                    continuousUpdateables.Add(updateable);
-                    break;
+                switch (updateable.PositionUpdateMode)
+                {
+                    case PositionUpdateMode.Discrete:
+                        discreteUpdateables.Add(updateable);
+                        break;
+                    case PositionUpdateMode.Passive:
+                        passiveUpdateables.Add(updateable);
+                        break;
+                    case PositionUpdateMode.Continuous:
+                        continuousUpdateables.Add(updateable);
+                        break;
+                }
             }
         }
 
@@ -198,24 +201,27 @@ namespace BEPUphysics.PositionUpdating
             if (updateable.PositionUpdater == null)
             {
                 updateable.PositionUpdater = this;
-                var ccdUpdateable = updateable as ICCDPositionUpdateable;
-                if (ccdUpdateable != null)
+                lock (this)
                 {
-                    switch (ccdUpdateable.PositionUpdateMode)
+                    var ccdUpdateable = updateable as ICCDPositionUpdateable;
+                    if (ccdUpdateable != null)
                     {
-                        case PositionUpdateMode.Discrete:
-                            discreteUpdateables.Add(updateable);
-                            break;
-                        case PositionUpdateMode.Passive:
-                            passiveUpdateables.Add(ccdUpdateable);
-                            break;
-                        case PositionUpdateMode.Continuous:
-                            continuousUpdateables.Add(ccdUpdateable);
-                            break;
+                        switch (ccdUpdateable.PositionUpdateMode)
+                        {
+                            case PositionUpdateMode.Discrete:
+                                discreteUpdateables.Add(updateable);
+                                break;
+                            case PositionUpdateMode.Passive:
+                                passiveUpdateables.Add(ccdUpdateable);
+                                break;
+                            case PositionUpdateMode.Continuous:
+                                continuousUpdateables.Add(ccdUpdateable);
+                                break;
+                        }
                     }
+                    else
+                        discreteUpdateables.Add(updateable);
                 }
-                else
-                    discreteUpdateables.Add(updateable);
             }
             else
             {
@@ -234,24 +240,27 @@ namespace BEPUphysics.PositionUpdating
             if (updateable.PositionUpdater == this)
             {
                 updateable.PositionUpdater = null;
-                var ccdUpdateable = updateable as ICCDPositionUpdateable;
-                if (ccdUpdateable != null)
+                lock (this)
                 {
-                    switch (ccdUpdateable.PositionUpdateMode)
+                    var ccdUpdateable = updateable as ICCDPositionUpdateable;
+                    if (ccdUpdateable != null)
                     {
-                        case PositionUpdateMode.Discrete:
-                            discreteUpdateables.Remove(updateable);
-                            break;
-                        case PositionUpdateMode.Passive:
-                            passiveUpdateables.Remove(ccdUpdateable);
-                            break;
-                        case PositionUpdateMode.Continuous:
-                            continuousUpdateables.Remove(ccdUpdateable);
-                            break;
+                        switch (ccdUpdateable.PositionUpdateMode)
+                        {
+                            case PositionUpdateMode.Discrete:
+                                discreteUpdateables.Remove(updateable);
+                                break;
+                            case PositionUpdateMode.Passive:
+                                passiveUpdateables.Remove(ccdUpdateable);
+                                break;
+                            case PositionUpdateMode.Continuous:
+                                continuousUpdateables.Remove(ccdUpdateable);
+                                break;
+                        }
                     }
+                    else
+                        discreteUpdateables.Remove(updateable);
                 }
-                else
-                    discreteUpdateables.Remove(updateable);
             }
             else
                 throw new ArgumentException("Cannot remove object from this Integrator.  The object doesn't belong to it.");
