@@ -413,7 +413,7 @@ namespace BEPUphysics.Character
             RayHit earliestHit;
             if (!QueryManager.RayCast(ray, downRayLength, out earliestHit) || //Can't do anything if it didn't hit.
                 earliestHit.T <= 0 || //Can't do anything if the hit was invalid.
-                earliestHit.T - downRayLength > -minimumUpStepHeight || //Don't bother doing anything if the step is too small.
+                //earliestHit.T - downRayLength > -minimumUpStepHeight || //Don't bother doing anything if the step is too small.
                 earliestHit.T - downRayLength < -maximumStepHeight - upStepMargin) //Can't do anything if the step is too tall.
             {
                 //No valid hit was detected.
