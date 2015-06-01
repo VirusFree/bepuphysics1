@@ -528,7 +528,7 @@ namespace BEPUphysics.Character
             impulse.Z = linearJacobianA1.Z * x + linearJacobianA2.Z * y;
 
             characterBody.ApplyLinearImpulse(ref impulse);
-
+            /*
             if (supportEntity != null && supportEntity.IsDynamic)
             {
                 Vector3.Multiply(ref impulse, -supportForceFactor, out impulse);
@@ -542,7 +542,7 @@ namespace BEPUphysics.Character
 
                 supportEntity.ApplyLinearImpulse(ref impulse);
                 supportEntity.ApplyAngularImpulse(ref torque);
-            }
+            }*/
         }
 
         /// <summary>
@@ -607,7 +607,7 @@ namespace BEPUphysics.Character
             impulse.Z = linearJacobianA1.Z * x + linearJacobianA2.Z * y;
 
             characterBody.ApplyLinearImpulse(ref impulse);
-
+            /*
             if (supportEntity != null && supportEntity.IsDynamic)
             {
                 Vector3.Multiply(ref impulse, -supportForceFactor, out impulse);
@@ -621,7 +621,7 @@ namespace BEPUphysics.Character
                 supportEntity.ApplyLinearImpulse(ref impulse);
                 supportEntity.ApplyAngularImpulse(ref torque);
             }
-
+            */
             return (Math.Abs(lambda.X) + Math.Abs(lambda.Y));
 
 

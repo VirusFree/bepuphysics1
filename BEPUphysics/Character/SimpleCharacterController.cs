@@ -514,6 +514,7 @@ namespace BEPUphysics.Character
             //apply to character
             Body.LinearVelocity += Speed;
             //apply to support
+            /*
             var entityCollidable = SupportFinder.SupportData.SupportObject as EntityCollidable;
             if (entityCollidable != null)
             {
@@ -531,6 +532,7 @@ namespace BEPUphysics.Character
                     }
                 }
             }
+            */
             //disable stepping for a while
             DisableDownStepping(_JumpingDownSteppingDisableTime);
 
