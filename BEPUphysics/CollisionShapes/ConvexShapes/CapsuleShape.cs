@@ -13,6 +13,11 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
         Axis _Axis = Axis.Y;
         public Axis Axis { get { return _Axis; } }
 
+        //uncomment when/if needed
+        //private Vector3 posGrowVector;
+        //private Vector3 negGrowVector;
+
+
         float halfLength;
         ///<summary>
         /// Gets or sets the length of the capsule's inner line segment.
@@ -46,7 +51,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
         {
             this._Axis = Axis;
             halfLength = length * 0.5f;
-
+            //ChooseGrowVector();
             UpdateConvexShapeInfo(ComputeDescription(length, radius, Axis));
         }
 
@@ -59,7 +64,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
         {
             this._Axis = Axis;
             halfLength = length * 0.5f;
-
+            //ChooseGrowVector();
             UpdateConvexShapeInfo(description);
         }
 
@@ -227,49 +232,24 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
             Quaternion.Transform(ref localRay.Position, ref conjugate, out localRay.Position);
             Quaternion.Transform(ref ray.Direction, ref conjugate, out localRay.Direction);
 
-            float posGrow = 0;
-            float posSide1 = 0;
-            float posSide2 = 0;
-            float dirSide1 = 0;
-            float dirSide2 = 0;
-
-            if (_Axis == Axis.X)
-            {
-                posGrow = localRay.Position.X;
-                posSide1 = localRay.Position.Y;
-                posSide2 = localRay.Position.Z;
-                dirSide1 = localRay.Direction.Y;
-                dirSide2 = localRay.Direction.Z;
-            }
-            else if (_Axis == Axis.Y)
-            {
-                posGrow = localRay.Position.Y;
-                posSide1 = localRay.Position.X;
-                posSide2 = localRay.Position.Z;
-                dirSide1 = localRay.Direction.X;
-                dirSide2 = localRay.Direction.Z;
-            }
-            else if (_Axis == Axis.Z)
-            {
-                posGrow = localRay.Position.Z;
-                posSide1 = localRay.Position.X;
-                posSide2 = localRay.Position.Y;
-                dirSide1 = localRay.Direction.X;
-                dirSide2 = localRay.Direction.Y;
-            }
-
+            //get growth elements
+            float posGrow; float posSide1; float posSide2;
+            float dirGrow; float dirSide1; float dirSide2;
+            GetGrowElements(ref localRay.Position, out posGrow, out posSide1, out posSide2);
+            GetGrowElements(ref localRay.Direction, out dirGrow, out dirSide1, out dirSide2);
+            
             //Check for containment in the cylindrical portion of the capsule.
             if (posGrow >= -halfLength && posGrow <= halfLength && posSide1 * posSide1 + posSide2 * posSide2 <= collisionMargin * collisionMargin)
             {
                 //It's inside!
                 hit.T = 0;
                 hit.Location = localRay.Position;
-                hit.Normal = new Vector3(hit.Location.X, 0, hit.Location.Z);
+                CreateHitNormal(posSide1, posSide2, out hit.Normal);
                 float normalLengthSquared = hit.Normal.LengthSquared();
                 if (normalLengthSquared > 1e-9f)
                     Vector3.Divide(ref hit.Normal, (float)Math.Sqrt(normalLengthSquared), out hit.Normal);
                 else
-                    hit.Normal = new Vector3();
+                    hit.Normal = default(Vector3);
                 //Pull the hit into world space.
                 Quaternion.Transform(ref hit.Normal, ref transform.Orientation, out hit.Normal);
                 RigidTransform.Transform(ref hit.Location, ref transform, out hit.Location);
@@ -293,7 +273,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
                     goto lowerSphereTest;
 
 
-                hit = new RayHit();
+                hit = default(RayHit);
                 return false;
 
             }
@@ -310,10 +290,9 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
             if (squaredDistance > collisionMargin * collisionMargin)
             {
                 //It's too far!  The ray cannot possibly hit the capsule.
-                hit = new RayHit();
+                hit = default(RayHit);
                 return false;
             }
-
 
 
             //With the squared distance, compute the distance backward along the ray from the closest point on the ray to the axis.
@@ -326,39 +305,19 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
             Vector3.Multiply(ref localRay.Direction, hit.T, out hit.Location);
             Vector3.Add(ref hit.Location, ref localRay.Position, out hit.Location);
 
-            float hitGrow = 0;
-            float hitSide1 = 0;
-            float hitSide2 = 0;
-
-            if (_Axis == Axis.X)
-            {
-                hitGrow = hit.Location.X;
-                hitSide1 = hit.Location.Y;
-                hitSide2 = hit.Location.Z;
-            }
-            else if (_Axis == Axis.Y)
-            {
-                hitGrow = hit.Location.Y;
-                hitSide1 = hit.Location.X;
-                hitSide2 = hit.Location.Z;
-            }
-            else if (_Axis == Axis.Z)
-            {
-                hitGrow = hit.Location.Z;
-                hitSide1 = hit.Location.X;
-                hitSide2 = hit.Location.Y;
-            }
+            //get growth elements
+            float hitGrow; float hitSide1; float hitSide2;
+            GetGrowElements(ref hit.Location, out hitGrow, out hitSide1, out hitSide2);
 
             //Is it intersecting the cylindrical portion of the capsule?
             if (hitGrow <= halfLength && hitGrow >= -halfLength && hit.T < maximumLength)
             {
-                //Yup!
-                hit.Normal = new Vector3(hitSide1, 0, hitSide2);
+                CreateHitNormal(hitSide1, hitSide2, out hit.Normal);
                 float normalLengthSquared = hit.Normal.LengthSquared();
                 if (normalLengthSquared > 1e-9f)
                     Vector3.Divide(ref hit.Normal, (float)Math.Sqrt(normalLengthSquared), out hit.Normal);
                 else
-                    hit.Normal = new Vector3();
+                    hit.Normal = default(Vector3);
                 //Pull the hit into world space.
                 Quaternion.Transform(ref hit.Normal, ref transform.Orientation, out hit.Normal);
                 RigidTransform.Transform(ref hit.Location, ref transform, out hit.Location);
@@ -367,6 +326,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
 
             if (hitGrow < halfLength)
                 goto lowerSphereTest;
+
         upperSphereTest:
             //Nope! It may be intersecting the ends of the capsule though.
             //We're above the capsule, so cast a ray against the upper sphere.
@@ -380,7 +340,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
                 return true;
             }
             //No intersection! We can't be hitting the other sphere, so it's over!
-            hit = new RayHit();
+            hit = default(RayHit);
             return false;
 
         lowerSphereTest:
@@ -396,10 +356,75 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
                 return true;
             }
             //No intersection! We can't be hitting the other sphere, so it's over!
-            hit = new RayHit();
+            hit = default(RayHit);
             return false;
 
         }
 
+        /*
+        void ChooseGrowVector()
+        {
+            //set up vector
+            if (_Axis == Axis.X)
+                posGrowVector = Toolbox.RightVector;
+            else if (_Axis == Axis.Y)
+                posGrowVector = Toolbox.UpVector;
+            else if (_Axis == Axis.Z)
+                posGrowVector = Toolbox.ForwardVector;
+            else
+                throw new Exception("Invalid Axis");
+            //set down vector
+            negGrowVector = -posGrowVector;
+        }
+        */
+
+        void GetGrowElements(ref Vector3 vin, out float Grow, out float Side1, out float Side2)
+        {
+            if (_Axis == Axis.X)
+            {
+                Grow = vin.X;
+                Side1 = vin.Y;
+                Side2 = vin.Z;
+            }
+            else if (_Axis == Axis.Y)
+            {
+                Grow = vin.Y;
+                Side1 = vin.X;
+                Side2 = vin.Z;
+            }
+            else if (_Axis == Axis.Z)
+            {
+                Grow = vin.Z;
+                Side1 = vin.X;
+                Side2 = vin.Y;
+            }
+            else
+                throw new Exception("Invalid Axis");
+        }
+
+
+        void CreateHitNormal(float Side1, float Side2, out Vector3 vout)
+        {
+            if (_Axis == Axis.X)
+            {
+                vout.X = 0;
+                vout.Y = Side1;
+                vout.Z = Side2;
+            }
+            else if (_Axis == Axis.Y)
+            {
+                vout.Y = 0;
+                vout.X = Side1;
+                vout.Z = Side2;
+            }
+            else if (_Axis == Axis.Z)
+            {
+                vout.Z = 0;
+                vout.X = Side1;
+                vout.Y = Side2;
+            }
+            else
+                throw new Exception("Invalid Axis");
+        }
     }
 }
