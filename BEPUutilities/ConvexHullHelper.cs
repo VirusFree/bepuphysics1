@@ -139,6 +139,7 @@ namespace BEPUutilities
             //We're now ready to begin the main loop.
             while (outsidePoints.Count > 0)
             {
+                bool changed = false;
                 //While the convex hull is incomplete...
                 for (int k = 0; k < outputTriangleIndices.Count; k += 3)
                 {
@@ -199,9 +200,13 @@ namespace BEPUutilities
                         RemoveInsidePoints(points, outputTriangleIndices, outsidePoints);
 
                         //The list has been significantly messed with, so restart the loop.
+                        changed |= true;
                         break;
                     }
                 }
+                //no change? exit loop
+                if (!changed)
+                    break;
             }
 
 
