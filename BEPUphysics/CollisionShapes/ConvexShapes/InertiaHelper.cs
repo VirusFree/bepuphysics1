@@ -446,6 +446,15 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
                 bo += scaledTetrahedronVolume * (2 * v2.X * v2.Z + v3.X * v2.Z + v4.X * v2.Z + v2.X * v3.Z + 2 * v3.X * v3.Z + v4.X * v3.Z + v2.X * v4.Z + v3.X * v4.Z + 2 * v4.X * v4.Z);
                 co += scaledTetrahedronVolume * (2 * v2.X * v2.Y + v3.X * v2.Y + v4.X * v2.Y + v2.X * v3.Y + 2 * v3.X * v3.Y + v4.X * v3.Y + v2.X * v4.Y + v3.X * v4.Y + 2 * v4.X * v4.Y);
             }
+            //absolute parameters
+            scaledVolume = Math.Abs(scaledVolume);
+            a = Math.Abs(a);
+            b = Math.Abs(b);
+            c = Math.Abs(c);
+            ao = Math.Abs(ao);
+            bo = Math.Abs(bo);
+            co = Math.Abs(co);
+            //compute parameters
             if (scaledVolume < Toolbox.Epsilon)
             {
                 //This function works on the assumption that there is volume.
