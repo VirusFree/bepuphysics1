@@ -28,10 +28,10 @@ namespace BEPUphysics.Entities.Prefabs
         /// Constructs a nondynamic convex hull of points.
         /// </summary>
         /// <param name="points">List of points in the object.</param>
-        public ConvexHull(IList<Vector3> points)
+        public ConvexHull(Vector3[] points, IList<int> indices, float Scale)
         {
             Vector3 center;
-            var shape = new ConvexHullShape(points, out center);
+            var shape = new ConvexHullShape(points, indices, Scale, out center);
             Initialize(new ConvexCollidable<ConvexHullShape>(shape));
             Position = center;
         }
@@ -42,10 +42,10 @@ namespace BEPUphysics.Entities.Prefabs
         /// </summary>
         /// <param name="points">List of points in the object.</param>
         /// <param name="mass">Mass of the object.</param>
-        public ConvexHull(IList<Vector3> points, float mass)
+        public ConvexHull(Vector3[] points, IList<int> indices, float Scale, float mass)
         {
             Vector3 center;
-            var shape = new ConvexHullShape(points, out center);
+            var shape = new ConvexHullShape(points, indices, Scale, out center);
             Initialize(new ConvexCollidable<ConvexHullShape>(shape), mass);
             Position = center;
         }
@@ -56,8 +56,8 @@ namespace BEPUphysics.Entities.Prefabs
         /// <param name="position">Position to place the convex hull.</param>
         /// <param name="points">List of points in the object.</param>
         /// <param name="mass">Mass of the object.</param>
-        public ConvexHull(Vector3 position, IList<Vector3> points, float mass)
-            : this(points, mass)
+        public ConvexHull(Vector3 position, Vector3[] points, IList<int> indices, float Scale, float mass)
+            : this(points, indices, mass)
         {
             Position = position;
         }
@@ -68,8 +68,8 @@ namespace BEPUphysics.Entities.Prefabs
         /// </summary>
         /// <param name="position">Position to place the convex hull.</param>
         /// <param name="points">List of points in the object.</param>
-        public ConvexHull(Vector3 position, IList<Vector3> points)
-            : this(points)
+        public ConvexHull(Vector3 position, Vector3[] points, IList<int> indices, float Scale)
+            : this(points, indices, Scale)
         {
             Position = position;
         }
@@ -80,8 +80,8 @@ namespace BEPUphysics.Entities.Prefabs
         /// <param name="motionState">Motion state specifying the entity's initial state.</param>
         /// <param name="points">List of points in the object.</param>
         /// <param name="mass">Mass of the object.</param>
-        public ConvexHull(MotionState motionState, IList<Vector3> points, float mass)
-            : this(points, mass)
+        public ConvexHull(MotionState motionState, Vector3[] points, IList<int> indices, float Scale, float mass)
+            : this(points, indices, Scale, mass)
         {
             MotionState = motionState;
         }
@@ -92,8 +92,8 @@ namespace BEPUphysics.Entities.Prefabs
         /// </summary>
         /// <param name="motionState">Motion state specifying the entity's initial state.</param>
         /// <param name="points">List of points in the object.</param>
-        public ConvexHull(MotionState motionState, IList<Vector3> points)
-            : this(points)
+        public ConvexHull(MotionState motionState, Vector3[] points, IList<int> indices, float Scale)
+            : this(points, indices, Scale)
         {
             MotionState = motionState;
         }
