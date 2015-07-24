@@ -20,6 +20,11 @@ namespace BEPUutilities
         /// </summary>
         public float Z;
 
+        ///<summary>
+        /// Determine if it's Identity
+        ///</summary>
+        public bool IsZero { get { return X == 0 && Y == 0 && Z == 0; } }
+
         /// <summary>
         /// Constructs a new 3d vector.
         /// </summary>

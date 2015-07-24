@@ -1,4 +1,4 @@
-﻿ 
+﻿
 
 namespace BEPUutilities
 {
@@ -15,6 +15,11 @@ namespace BEPUutilities
         /// Rotation component of the transform.
         ///</summary>
         public Quaternion Orientation;
+
+        ///<summary>
+        /// Determine if it's Identity
+        ///</summary>
+        public bool IsIdentity { get { return Position.IsZero && Orientation.IsIdentity; } }
 
         ///<summary>
         /// Constructs a new rigid transform.
@@ -73,7 +78,7 @@ namespace BEPUutilities
             }
         }
 
-      
+
 
         ///<summary>
         /// Gets the identity rigid transform.
@@ -82,7 +87,7 @@ namespace BEPUutilities
         {
             get
             {
-                var t = new RigidTransform {Orientation = Quaternion.Identity, Position = new Vector3()};
+                var t = new RigidTransform { Orientation = Quaternion.Identity, Position = new Vector3() };
                 return t;
             }
         }

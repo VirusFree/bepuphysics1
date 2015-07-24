@@ -27,6 +27,11 @@ namespace BEPUutilities
         /// </summary>
         public float W;
 
+        ///<summary>
+        /// Determine if it's Identity
+        ///</summary>
+        public bool IsIdentity { get { return X == 0 && Y == 0 && Z == 0 && W == 1; } }
+
         /// <summary>
         /// Constructs a new Quaternion.
         /// </summary>
@@ -436,8 +441,8 @@ namespace BEPUutilities
             b.Y = -a.Y;
             b.Z = -a.Z;
             b.W = -a.W;
-        }      
-        
+        }
+
         /// <summary>
         /// Negates the components of a quaternion.
         /// </summary>
@@ -840,7 +845,7 @@ namespace BEPUutilities
             Concatenate(ref startInverse, ref end, out relative);
         }
 
-        
+
         /// <summary>
         /// Transforms the rotation into the local space of the target basis such that rotation = Quaternion.Concatenate(localRotation, targetBasis)
         /// </summary>
