@@ -110,7 +110,7 @@ namespace BEPUutilities.ResourceManagement
         /// <param name="poolIndex">Pool index associated with the buffer.</param>
         public virtual void GiveBack(T[] buffer, int poolIndex)
         {
-#if DEBUG
+#if false
             Debug.Assert(outstandingResources.Remove(buffer), "The buffer being returned must come from this pool, and buffers should only be returned once.");
             if (CheckIfReturnedBuffersAreClean)
             {
