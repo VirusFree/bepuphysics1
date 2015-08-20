@@ -44,6 +44,10 @@ namespace BEPUphysics.CollisionTests
             Normal = candidate.Normal;
             PenetrationDepth = candidate.PenetrationDepth;
             Id = candidate.Id;
+
+            //zero contact normal failsafe
+            if (Normal.IsZero)
+                Normal = Vector3.Up;
         }
 
         /// <summary>
