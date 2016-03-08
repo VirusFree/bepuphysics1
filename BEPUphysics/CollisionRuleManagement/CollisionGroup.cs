@@ -9,12 +9,14 @@ namespace BEPUphysics.CollisionRuleManagement
     public class CollisionGroup
     {
         private readonly int hashCode;
+        public string Name = "";
 
         /// <summary>
         /// Constructs a new collision group.
         /// </summary>
-        public CollisionGroup()
+        public CollisionGroup(string Name)
         {
+            this.Name = Name;
             const ulong prime = 0xd8163841;
             var hash = (ulong)(base.GetHashCode());
             hash = hash * hash * hash * hash * hash * prime;

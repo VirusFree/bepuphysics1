@@ -221,7 +221,7 @@ namespace BEPUphysics.CollisionRuleManagement
         /// There are no special rules associated with this group by default; entities within this group have normal, full interaction with all other entities.
         /// Collision group interaction rules can be overriden by entity personal collision rules or entity-to-entity specific collision rules.
         /// </summary>
-        public static CollisionGroup DefaultDynamicCollisionGroup = new CollisionGroup();
+        public static CollisionGroup DefaultDynamicCollisionGroup = new CollisionGroup("DefaultDynamicCollisionGroup");
 
         /// <summary>
         /// When a kinematic entity is created and added to a space without having a specific collision group set beforehand, it inherits this collision group.
@@ -230,7 +230,7 @@ namespace BEPUphysics.CollisionRuleManagement
         /// 
         /// Non-entity collidable objects like static triangle meshes also use this collision group by default.
         /// </summary>
-        public static CollisionGroup DefaultKinematicCollisionGroup = new CollisionGroup();
+        public static CollisionGroup DefaultKinematicCollisionGroup = new CollisionGroup("DefaultKinematicCollisionGroup");
 
         /// <summary>
         /// Determines what collision rule governs the interaction between the two objects.
