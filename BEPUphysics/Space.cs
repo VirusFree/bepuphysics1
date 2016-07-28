@@ -244,8 +244,9 @@ namespace BEPUphysics
         ///<param name="spaceObject">Space object to add.</param>
         public void Add(ISpaceObject spaceObject)
         {
-            if (spaceObject.Space != null)
-                throw new ArgumentException("The object belongs to some Space already; cannot add it again.");
+            if (spaceObject.Space == this)
+                return;
+
             spaceObject.Space = this;
 
             SimulationIslandMember simulationIslandMember = spaceObject as SimulationIslandMember;
@@ -368,7 +369,7 @@ namespace BEPUphysics
         public void Remove(ISpaceObject spaceObject)
         {
             if (spaceObject.Space != this)
-                throw new ArgumentException("The object does not belong to this space; cannot remove it.");
+                return;
 
             SimulationIslandMember simulationIslandMember = spaceObject as SimulationIslandMember;
             if (simulationIslandMember != null)
