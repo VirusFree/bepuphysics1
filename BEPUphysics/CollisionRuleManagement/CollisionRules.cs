@@ -262,6 +262,23 @@ namespace BEPUphysics.CollisionRuleManagement
         ///<param name="a">First ruleset in the pair.</param>
         ///<param name="b">Second ruleset in the pair.</param>
         ///<returns>Collision rule governing the interaction between the pair.</returns>
+        public static bool GetSpecificCollisionRuleDefault(CollisionRules a, CollisionRules b, out CollisionRule result)
+        {
+            result = CollisionRule.Defer;
+            CollisionRule aToB;
+            var aRule = a.specific.WrappedDictionary.TryGetValue(b, out aToB);
+            CollisionRule bToA;
+            var bRule = b.specific.WrappedDictionary.TryGetValue(a, out bToA);
+            result = aToB > bToA ? aToB : bToA;
+            return aRule || bRule;
+        }
+
+        ///<summary>
+        /// Default implementation used to calculate collision rules due to the rulesets' specific relationships.
+        ///</summary>
+        ///<param name="a">First ruleset in the pair.</param>
+        ///<param name="b">Second ruleset in the pair.</param>
+        ///<returns>Collision rule governing the interaction between the pair.</returns>
         public static CollisionRule GetSpecificCollisionRuleDefault(CollisionRules a, CollisionRules b)
         {
             CollisionRule aToB;
