@@ -4,6 +4,7 @@ using BEPUphysics.CollisionRuleManagement;
 using BEPUutilities.DataStructures;
 using System;
 using BEPUutilities.Threading;
+using System.Runtime.CompilerServices;
 
 namespace BEPUphysics.BroadPhaseSystems
 {
@@ -51,6 +52,7 @@ namespace BEPUphysics.BroadPhaseSystems
         /// Adds an entry to the broad phase.
         /// </summary>
         /// <param name="entry">Entry to add.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void Add(BroadPhaseEntry entry)
         {
             if (entry.BroadPhase == null)
@@ -63,6 +65,7 @@ namespace BEPUphysics.BroadPhaseSystems
         /// Removes an entry from the broad phase.
         /// </summary>
         /// <param name="entry">Entry to remove.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void Remove(BroadPhaseEntry entry)
         {
             if (entry.BroadPhase == this)
@@ -71,6 +74,7 @@ namespace BEPUphysics.BroadPhaseSystems
                 throw new ArgumentException("Cannot remove entry; it does not belong to this broad phase.");
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void AddOverlap(BroadPhaseOverlap overlap)
         {
             overlapAddLock.Enter();
@@ -83,6 +87,7 @@ namespace BEPUphysics.BroadPhaseSystems
         /// </summary>
         /// <param name="entryA">First entry of the overlap.</param>
         /// <param name="entryB">Second entry of the overlap.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal void TryToAddOverlap(BroadPhaseEntry entryA, BroadPhaseEntry entryB)
         {
             CollisionRule rule;
@@ -94,6 +99,7 @@ namespace BEPUphysics.BroadPhaseSystems
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected internal CollisionRule GetCollisionRule(BroadPhaseEntry entryA, BroadPhaseEntry entryB)
         {
             if (entryA.IsActive || entryB.IsActive)

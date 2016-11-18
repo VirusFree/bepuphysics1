@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 
@@ -18,6 +19,7 @@ namespace BEPUutilities
         /// <summary>
         /// Enters the critical section.  A thread cannot attempt to enter the spinlock if it already owns the spinlock.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enter()
         {
             int count = 0;
@@ -33,6 +35,7 @@ namespace BEPUutilities
         /// <summary>
         /// Attempts to enters the critical section.  A thread cannot attempt to enter the spinlock if it already owns the spinlock.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnter()
         {
             return Interlocked.CompareExchange(ref owner, 0, -1) == -1;
@@ -42,6 +45,7 @@ namespace BEPUutilities
         /// Exits the critical section.  This can only be safely called from the same
         /// thread of execution after a corresponding Enter.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Exit()
         {
             //To be safe, technically should check the identity of the exiter.
@@ -50,6 +54,7 @@ namespace BEPUutilities
             owner = -1;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void WaitBriefly(ref int attempt)
         {
             if (attempt == SleepInterval)
