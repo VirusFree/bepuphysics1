@@ -34,10 +34,11 @@ namespace BEPUphysics.CollisionRuleManagement
         public static void DefineCollisionRule(CollisionGroup groupA, CollisionGroup groupB, CollisionRule rule)
         {
             var pair = new CollisionGroupPair(groupA, groupB);
-            if (CollisionRules.CollisionGroupRules.ContainsKey(pair))
-                CollisionRules.CollisionGroupRules[pair] = rule;
-            else
-                CollisionRules.CollisionGroupRules.Add(pair, rule);
+            lock (CollisionRules.CollisionGroupRules)
+                if (CollisionRules.CollisionGroupRules.ContainsKey(pair))
+                    CollisionRules.CollisionGroupRules[pair] = rule;
+                else
+                    CollisionRules.CollisionGroupRules.Add(pair, rule);
         }
 
         /// <summary>
@@ -96,10 +97,13 @@ namespace BEPUphysics.CollisionRuleManagement
         /// <param name="groupB">SecondCollisionGroup of the pair.</param>
         public static void RemoveCollisionRule(CollisionGroup groupA, CollisionGroup groupB)
         {
-            Dictionary<CollisionGroupPair, CollisionRule> dictionary = CollisionRules.CollisionGroupRules;
-            var pair = new CollisionGroupPair(groupA, groupB);
-            if (dictionary.ContainsKey(pair))
-                dictionary.Remove(pair);
+            lock (CollisionRules.CollisionGroupRules)
+            {
+                Dictionary<CollisionGroupPair, CollisionRule> dictionary = CollisionRules.CollisionGroupRules;
+                var pair = new CollisionGroupPair(groupA, groupB);
+                if (dictionary.ContainsKey(pair))
+                    dictionary.Remove(pair);
+            }
         }
 
         /// <summary>

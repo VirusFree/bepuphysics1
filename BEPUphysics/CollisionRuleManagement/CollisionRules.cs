@@ -300,7 +300,8 @@ namespace BEPUphysics.CollisionRuleManagement
             if (a.group == null || b.group == null)
                 return CollisionRule.Defer; //This can happen occasionally when objects aren't in a space or are being handled uniquely (like in compound bodies).
             CollisionRule pairRule;
-            CollisionGroupRules.TryGetValue(new CollisionGroupPair(a.group, b.group), out pairRule);
+            lock (CollisionGroupRules)
+                CollisionGroupRules.TryGetValue(new CollisionGroupPair(a.group, b.group), out pairRule);
             return pairRule;
         }
         ///<summary>
