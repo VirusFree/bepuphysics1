@@ -32,7 +32,7 @@ namespace BEPUphysics.Character
         }
 
 
-        Func<BroadPhaseEntry, bool> SupportRayFilter;
+        public Func<BroadPhaseEntry, bool> SupportRayFilter;
         bool SupportRayFilterFunction(BroadPhaseEntry entry)
         {
             //Only permit an object to be used as a support if it fully collides with the character.
