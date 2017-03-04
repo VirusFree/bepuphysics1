@@ -360,7 +360,7 @@ namespace BEPUphysics.Character
 
         }
 
-        SupportData TeleportToPosition(Vector3 newPosition, float dt)
+        public SupportData TeleportToPosition(Vector3 newPosition, float dt)
         {
 
             Body.Position = newPosition;
