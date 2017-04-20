@@ -144,6 +144,8 @@ namespace BEPUphysics.Character
             get { return verticalSupportData; }
         }
 
+        public Vector3 SupportNormal;
+
         /// <summary>
         /// Computes a traction contact using a movement direction. This is helpful for the vertical motion constraint.
         /// By biasing the search in the movement direction, contacts on the character's butt (which might otherwise hold the character back via the vertical motion constraint) are ignored.
@@ -152,6 +154,7 @@ namespace BEPUphysics.Character
         /// <param name="movementDirection">Movement direction of the character.</param>
         private void UpdateVerticalSupportData(ref Vector3 down, ref Vector3 movementDirection)
         {
+            SupportNormal = -down;
             if (HasTraction)
             {
                 if (tractionContacts.Count > 0)
@@ -169,6 +172,12 @@ namespace BEPUphysics.Character
                             greatestIndex = i;
                         }
                     }
+
+                    //compute average support normal
+                    SupportNormal = Vector3.Zero;
+                    for (int i = 0; i < tractionContacts.Count; i++)
+                        SupportNormal += tractionContacts[i].Contact.Normal;
+                    SupportNormal.Normalize();
 
                     verticalSupportData.Position = tractionContacts.Elements[greatestIndex].Contact.Position;
                     verticalSupportData.Normal = tractionContacts.Elements[greatestIndex].Contact.Normal;
@@ -194,7 +203,7 @@ namespace BEPUphysics.Character
                 //There were no traction providing contacts, so check the support ray.
                 Debug.Assert(SupportRayData != null, "If the character has traction but there are no contacts, there must be a ray cast with traction.");
                 verticalSupportData.Position = SupportRayData.Value.HitData.Location;
-                verticalSupportData.Normal = SupportRayData.Value.HitData.Normal;
+                verticalSupportData.Normal = SupportNormal = SupportRayData.Value.HitData.Normal;
                 verticalSupportData.Depth = Vector3.Dot(down, SupportRayData.Value.HitData.Normal) * (BottomDistance - SupportRayData.Value.HitData.T);
                 verticalSupportData.SupportObject = SupportRayData.Value.HitObject;
                 return;
