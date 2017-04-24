@@ -120,6 +120,11 @@ namespace BEPUphysics.Character
         internal Vector3 movementDirection3d;
 
         /// <summary>
+        /// Change character floating behaviour. Flying character can works as on ground.
+        /// </summary>
+        public bool HasTractionDuringFloating = false;
+
+        /// <summary>
         /// Gets the 3d movement direction, as updated in the previous call to UpdateMovementBasis.
         /// Note that this will not change when MovementDirection is set. It only changes on a call to UpdateMovementBasis.
         /// So, getting this value externally will get the previous frame's snapshot.
@@ -565,7 +570,7 @@ namespace BEPUphysics.Character
             //Add and clamp the impulse.
 
             Vector2 previousAccumulatedImpulse = accumulatedImpulse;
-            if (MovementMode == MovementMode.Floating)
+            if (MovementMode == MovementMode.Floating && !HasTractionDuringFloating)
             {
                 //If it's floating, clamping rules are different.
                 //The constraint is not permitted to slow down the character; only speed it up.

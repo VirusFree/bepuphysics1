@@ -94,6 +94,8 @@ namespace BEPUphysics.Character
             }
         }
 
+        public float FloatingTractionForceMultiplier = 0;
+
         /// <summary>
         /// Gets or sets the radius of the body cylinder.
         /// </summary>
@@ -355,7 +357,7 @@ namespace BEPUphysics.Character
             else
             {
                 HorizontalMotionConstraint.MovementMode = MovementMode.Floating;
-                HorizontalMotionConstraint.MaximumForce = tractionForce;
+                HorizontalMotionConstraint.MaximumForce = tractionForce * FloatingTractionForceMultiplier;
             }
 
         }
