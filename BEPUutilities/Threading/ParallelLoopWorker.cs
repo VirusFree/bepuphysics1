@@ -11,7 +11,7 @@ namespace BEPUutilities.Threading
         internal int finalIndex;
 
         internal AutoResetEvent getToWork;
-        
+
         internal int iterationsPerSteal;
         private Thread thread;
         private Action threadStart;
@@ -61,7 +61,8 @@ namespace BEPUutilities.Threading
                     //Do the job piece.  Make sure you don't do more than exists in the list itself.
                     for (int i = beginIndex; i < endIndex && i < finalIndex; i++)
                     {
-                        manager.currentLoopBody(i);
+                        try { manager.currentLoopBody(i); }
+                        catch { System.Diagnostics.Debug.Assert(false, "Physics worker thread unhandled exception caught"); }
                     }
                 } //this is not 'thread safe' but the result of the unsafety is a quick fail in the worst case.
 
