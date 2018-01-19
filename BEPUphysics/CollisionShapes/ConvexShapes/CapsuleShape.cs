@@ -366,11 +366,11 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
         {
             //set up vector
             if (_Axis == Axis.X)
-                posGrowVector = Toolbox.RightVector;
+                posGrowVector = Vector3.UnitX;
             else if (_Axis == Axis.Y)
-                posGrowVector = Toolbox.UpVector;
+                posGrowVector = Vector3.UnitY;
             else if (_Axis == Axis.Z)
-                posGrowVector = Toolbox.ForwardVector;
+                posGrowVector = Vector3.UnitZ;
             else
                 throw new Exception("Invalid Axis");
             //set down vector

@@ -1,6 +1,6 @@
 ﻿using System;
 using BEPUphysics.BroadPhaseEntries.MobileCollidables;
- 
+
 using BEPUutilities;
 
 namespace BEPUphysics.CollisionShapes.ConvexShapes
@@ -222,7 +222,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
             float dirGrow; float dirSide1; float dirSide2;
             GetGrowElements(ref localRay.Position, out posGrow, out posSide1, out posSide2);
             GetGrowElements(ref localRay.Direction, out dirGrow, out dirSide1, out dirSide2);
-            
+
             //Check for containment.
             if (posGrow >= -halfHeight && posGrow <= halfHeight && posSide1 * posSide1 + posSide2 * posSide2 <= radius * radius)
             {
@@ -256,7 +256,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
                     goto upperTest;
                 if (posGrow < -halfHeight)
                     goto lowerTest;
-                
+
                 hit = default(RayHit);
                 return false;
 
@@ -277,7 +277,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
                 hit = default(RayHit);
                 return false;
             }
-            
+
 
             //With the squared distance, compute the distance backward along the ray from the closest point on the ray to the axis.
             float backwardsDistance = radius * (float)Math.Sqrt(1 - squaredDistance / (radius * radius));
@@ -288,7 +288,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
             //Compute the impact point on the infinite cylinder in 3d local space.
             Vector3.Multiply(ref localRay.Direction, hit.T, out hit.Location);
             Vector3.Add(ref hit.Location, ref localRay.Position, out hit.Location);
-            
+
             //get growth elements
             float hitGrow; float hitSide1; float hitSide2;
             GetGrowElements(ref hit.Location, out hitGrow, out hitSide1, out hitSide2);
@@ -311,7 +311,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
             if (hitGrow < halfHeight)
                 goto lowerTest;
 
-        upperTest:
+            upperTest:
             {
                 //Nope! It may be intersecting the ends of the cylinder though.
                 //We're above the cylinder, so cast a ray against the upper cap.
@@ -339,7 +339,7 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
                 hit = default(RayHit);
                 return false;
             }
-        lowerTest:
+            lowerTest:
             {
                 //Is it intersecting the bottom cap?
                 if (dirGrow < 1e-9)
@@ -373,17 +373,17 @@ namespace BEPUphysics.CollisionShapes.ConvexShapes
         {
             //set up vector
             if (_Axis == Axis.X)
-                posGrowVector = Toolbox.RightVector;
+                posGrowVector = Vector3.UnitX;
             else if (_Axis == Axis.Y)
-                posGrowVector = Toolbox.UpVector;
+                posGrowVector = Vector3.UnitY;
             else if (_Axis == Axis.Z)
-                posGrowVector = Toolbox.ForwardVector;
+                posGrowVector = Vector3.UnitZ;
             else
                 throw new Exception("Invalid Axis");
             //set down vector
             negGrowVector = -posGrowVector;
         }
-        
+
 
         void GetGrowElements(ref Vector3 vin, out float Grow, out float Side1, out float Side2)
         {
